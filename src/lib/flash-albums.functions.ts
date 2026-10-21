@@ -29,6 +29,9 @@ export type FlashAlbum = {
   view_count: number;
   created_at: string;
   media: FlashMedia[];
+  /** ALBUM SIÊU HOT: số lượng HIỂN THỊ do admin đặt (null = dùng số media thực tế). Không liên quan media thật. */
+  display_image_count?: number | null;
+  display_video_count?: number | null;
   /** true = Code HOT cũ chưa đồng bộ, chỉ đọc. */
   legacy?: boolean;
 };
@@ -145,17 +148,31 @@ async function syncLegacyHotCodes(sb: any) {
   }
 }
 
+const Tier = z.enum(["hot", "super"]).optional();
+const SUPER_SQL_MISSING = "Chưa chạy SQL ALBUM SIÊU HOT trên Supabase #4 (supabase-sql/SB4/2026-10-20_flash_albums_super.sql).";
+
+/** Lọc theo loại album; Album HOT thường vẫn chạy khi DB chưa có cột is_super. */
+async function selectAlbumsByTier(sb: any, superTier: boolean) {
+  const base = () => sb.from("flash_albums").select("*, media:flash_album_media(*)").order("created_at", { ascending: false });
+  const r = await base().eq("is_super", superTier);
+  if (r.error && (await import("@/lib/flash-albums.server")).isMissingColumn(r.error)) {
+    if (superTier) throw new Error(SUPER_SQL_MISSING);
+    return base();
+  }
+  return r;
+}
+
 export const flashListFn = createServerFn({ method: "POST" })
-  .inputValidator((d) => Tok.parse(d))
+  .inputValidator((d) => Tok.extend({ tier: Tier }).parse(d))
   .handler(async ({ data }): Promise<FlashAlbum[]> => {
-    const { sb } = await guard(data.token);
-    try { await syncLegacyHotCodes(sb); } catch (e) { console.error("[flash] sync", e); }
-    const { data: rows, error } = await sb
-      .from("flash_albums")
-      .select("*, media:flash_album_media(*)")
-      .order("created_at", { ascending: false });
+    const { sb, F } = await guard(data.token);
+    const isSuper = data.tier === "super";
+    if (!isSuper) { try { await syncLegacyHotCodes(sb); } catch (e) { console.error("[flash] sync", e); } }
+    const { data: rows, error } = await selectAlbumsByTier(sb, isSuper);
     if (error) throw new Error(error.message);
-    return (rows ?? []).map(mapAlbum);
+    const albums = (rows ?? []).map(mapAlbum);
+    if (isSuper) for (const a of albums) a.media = await F.signVipMedia(sb, a.media);
+    return albums;
   });
 
 const NewMedia = z.object({
@@ -170,13 +187,16 @@ export const flashAddMediaFn = createServerFn({ method: "POST" })
   .inputValidator((d) => Tok.extend({ id: z.string().uuid(), items: z.array(NewMedia).min(1).max(100) }).parse(d))
   .handler(async ({ data }) => {
     const { sb, F } = await guard(data.token);
+    const bucket = await F.bucketFor(sb, data.id);
+    const isVip = bucket === F.FLASH_VIP_BUCKET;
     const start = await nextOrder(sb, data.id);
     const rows = data.items.map((it, i) => {
       if (it.path) {
         if (!it.path.startsWith(`${data.id}/`)) throw new Error("Đường dẫn tệp không hợp lệ.");
         return {
           album_id: data.id, kind: it.kind, storage_path: it.path, size_bytes: it.size ?? 0,
-          url: sb.storage.from(F.FLASH_BUCKET).getPublicUrl(it.path).data.publicUrl, display_order: start + i,
+          // Bucket VIP riêng tư: không lưu URL công khai, chỉ ký URL khi xem.
+          url: isVip ? "" : sb.storage.from(bucket).getPublicUrl(it.path).data.publicUrl, display_order: start + i,
         };
       }
       if (!it.url) throw new Error("Thiếu URL media.");
@@ -188,13 +208,17 @@ export const flashAddMediaFn = createServerFn({ method: "POST" })
   });
 
 export const flashCreateFn = createServerFn({ method: "POST" })
-  .inputValidator((d) => Tok.extend({ name: z.string().trim().min(1).max(120) }).parse(d))
+  .inputValidator((d) => Tok.extend({ name: z.string().trim().min(1).max(120), tier: Tier }).parse(d))
   .handler(async ({ data }) => {
     const { sb, F } = await guard(data.token);
+    const isSuper = data.tier === "super";
     for (let i = 0; i < 8; i++) {
       const code = F.randomAlbumCode();
-      const { data: row, error } = await sb.from("flash_albums").insert({ name: data.name, code }).select("id, code").single();
+      const row0: Record<string, unknown> = { name: data.name, code };
+      if (isSuper) row0.is_super = true;
+      const { data: row, error } = await sb.from("flash_albums").insert(row0).select("id, code").single();
       if (!error) return row as { id: string; code: string };
+      if (isSuper && F.isMissingColumn(error)) throw new Error(SUPER_SQL_MISSING);
       if (error.code !== "23505") throw new Error(error.message);
     }
     throw new Error("Không tạo được mã album, thử lại.");
@@ -213,10 +237,29 @@ export const flashDeleteFn = createServerFn({ method: "POST" })
   .inputValidator((d) => Tok.extend({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { sb, F } = await guard(data.token);
-    await F.removeFolder(sb, data.id);
+    await F.removeFolder(sb, data.id, await F.bucketFor(sb, data.id));
     await sb.from("flash_album_media").delete().eq("album_id", data.id);
     const { error } = await sb.from("flash_albums").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+const DisplayCount = z.number().int().min(0).max(1_000_000_000).nullable();
+
+/** ALBUM SIÊU HOT: lưu số lượng ảnh/video HIỂN THỊ (không tạo/sửa media). null = dùng số thực tế. */
+export const flashSetDisplayCountsFn = createServerFn({ method: "POST" })
+  .inputValidator((d) => Tok.extend({ id: z.string().uuid(), images: DisplayCount, videos: DisplayCount }).parse(d))
+  .handler(async ({ data }) => {
+    const { sb, F } = await guard(data.token);
+    if (!(await F.albumIsSuper(sb, data.id))) throw new Error("Chỉ áp dụng cho ALBUM SIÊU HOT.");
+    const { error } = await sb.from("flash_albums")
+      .update({ display_image_count: data.images, display_video_count: data.videos })
+      .eq("id", data.id).eq("is_super", true);
+    if (error) {
+      if (/display_(image|video)_count/i.test(error.message) || error.code === "42703" || error.code === "PGRST204")
+        throw new Error("Chưa chạy SQL supabase-sql/SB4/2026-10-21_flash_albums_display_counts.sql trên Supabase #4.");
+      throw new Error(error.message);
+    }
     return { ok: true };
   });
 
@@ -231,17 +274,18 @@ export const flashSetCoverFn = createServerFn({ method: "POST" })
 
 const FileSpec = z.object({ kind: z.enum(["image", "video"]), ext: z.string().regex(/^[a-z0-9]{1,5}$/) });
 
-/** Cấp URL upload có chữ ký để trình duyệt tải thẳng lên bucket ⚡. */
+/** Cấp URL upload có chữ ký để trình duyệt tải thẳng lên bucket của album. */
 export const flashSignUploadsFn = createServerFn({ method: "POST" })
   .inputValidator((d) => Tok.extend({ id: z.string().uuid(), files: z.array(FileSpec).min(1).max(50) }).parse(d))
   .handler(async ({ data }) => {
     const { sb, F } = await guard(data.token);
-    const out: { path: string; token: string }[] = [];
+    const bucket = await F.bucketFor(sb, data.id);
+    const out: { path: string; token: string; bucket: string }[] = [];
     for (const f of data.files) {
       const path = `${data.id}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${f.ext}`;
-      const { data: s, error } = await sb.storage.from(F.FLASH_BUCKET).createSignedUploadUrl(path);
+      const { data: s, error } = await sb.storage.from(bucket).createSignedUploadUrl(path);
       if (error) throw new Error(error.message);
-      out.push({ path, token: s.token });
+      out.push({ path, token: s.token, bucket });
     }
     return out;
   });
@@ -252,24 +296,35 @@ export const flashDeleteMediaFn = createServerFn({ method: "POST" })
     const { sb, F } = await guard(data.token);
     const { data: m } = await sb.from("flash_album_media").select("storage_path, album_id").eq("id", data.mediaId).maybeSingle();
     if (!m) return { ok: true };
-    if (m.storage_path) await sb.storage.from(F.FLASH_BUCKET).remove([m.storage_path]);
+    if (m.storage_path) await sb.storage.from(await F.bucketFor(sb, m.album_id)).remove([m.storage_path]);
     await sb.from("flash_albums").update({ cover_media_id: null }).eq("cover_media_id", data.mediaId);
     const { error } = await sb.from("flash_album_media").delete().eq("id", data.mediaId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-/** Xóa tất cả — CHỈ bảng flash_albums/flash_album_media và bucket `flash-albums`. */
+/** Xóa tất cả album CÙNG LOẠI (HOT thường hoặc SIÊU HOT) — không đụng loại còn lại. */
 export const flashPurgeAllFn = createServerFn({ method: "POST" })
-  .inputValidator((d) => Tok.extend({ confirm: z.literal("XOA") }).parse(d))
+  .inputValidator((d) => Tok.extend({ confirm: z.literal("XOA"), tier: Tier }).parse(d))
   .handler(async ({ data }) => {
     const { sb, F } = await guard(data.token);
-    const { data: albums } = await sb.from("flash_albums").select("id");
+    const isSuper = data.tier === "super";
+    let res = await sb.from("flash_albums").select("id").eq("is_super", isSuper);
+    let filtered = true;
+    if (res.error && F.isMissingColumn(res.error)) {
+      if (isSuper) throw new Error(SUPER_SQL_MISSING);
+      res = await sb.from("flash_albums").select("id");
+      filtered = false;
+    }
+    if (res.error) throw new Error(res.error.message);
+    const albums = res.data ?? [];
+    const bucket = isSuper ? F.FLASH_VIP_BUCKET : F.FLASH_BUCKET;
     let files = 0;
-    for (const a of albums ?? []) files += await F.removeFolder(sb, (a as any).id);
-    const { error } = await sb.from("flash_albums").delete().not("id", "is", null);
+    for (const a of albums) files += await F.removeFolder(sb, (a as any).id, bucket);
+    const q = sb.from("flash_albums").delete();
+    const { error } = filtered ? await q.eq("is_super", isSuper) : await q.not("id", "is", null);
     if (error) throw new Error(error.message);
-    return { albums: albums?.length ?? 0, files };
+    return { albums: albums.length, files };
   });
 
 /* ---------------- CÔNG KHAI — danh sách Album HOT ---------------- */
@@ -315,7 +370,8 @@ async function loadPublicAlbums(): Promise<{ albums: FlashAlbum[]; error: string
         } catch (e) { console.error("[flash] public sync", e); }
       }
     }
-    const albums = (a.data ?? []).map(mapAlbum);
+    // ALBUM SIÊU HOT không bao giờ đi qua luồng Code công khai (chỉ VIP, qua super-albums.functions).
+    const albums = (a.data ?? []).filter((x: any) => x.is_super !== true).map(mapAlbum);
     const have = new Set(albums.map((x) => x.code.toUpperCase()));
     for (const r of h.data ?? []) {
       const code = String(r.code || "").trim().toUpperCase();
@@ -359,11 +415,20 @@ async function unlockToken(userId: string, albumKey: string): Promise<string | n
 /** Xác thực code trên máy chủ. Chỉ khi đúng mới trả nội dung album. `id` bỏ trống = tìm theo code. */
 export const flashUnlockFn = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.string().min(1).max(100).optional(), code: z.string().trim().min(1).max(40), userId: z.string().min(1).max(100).optional() }).parse(d))
-  .handler(async ({ data }): Promise<{ ok: true; album: FlashAlbum; token: string | null } | { ok: false }> => {
+  .handler(async ({ data }): Promise<
+    | { ok: true; vip?: false; album: FlashAlbum; token: string | null }
+    | { ok: true; vip: true; card: import("@/lib/super-albums.server").SuperCodeCard }
+    | { ok: false }
+  > => {
     const code = normalizeCode(data.code);
     const { albums } = await loadPublicAlbums();
     const album = albums.find((a) => a.code.toUpperCase() === code && (!data.id || a.id === data.id));
-    if (!album) return { ok: false };
+    if (!album) {
+      // Code thuộc ALBUM VIP → chỉ trả thẻ khóa (không media); mở nội dung cần xác minh VIP + Code ở superOpenFn.
+      const S = await import("@/lib/super-albums.server");
+      const card = await S.findSuperCardByCode(code).catch(() => null);
+      return card ? { ok: true, vip: true, card } : { ok: false };
+    }
     // Ký theo Code (không lưu Code): album Code cũ được đồng bộ sang id mới vẫn khớp.
     const token = data.userId ? await unlockToken(data.userId, `code:${album.code.toUpperCase()}`) : null;
     return { ok: true, album, token };

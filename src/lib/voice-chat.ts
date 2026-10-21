@@ -106,8 +106,8 @@ export async function uploadVoiceLibraryItem(
   duration: number,
   category?: string,
   /**
-   * Tham số giữ lại cho tương thích. Kho Voice Bài Viết LUÔN nén cực mạnh
-   * rồi lưu vào Supabase #2 — không bao giờ đi Cloudflare R2.
+   * Tham số giữ lại cho tương thích. Voice được upload NGUYÊN BẢN (không nén)
+   * vào Supabase #2 — không bao giờ đi Cloudflare R2.
    */
   _storage: "default" | "sb2-compressed" = "sb2-compressed",
 ): Promise<VoiceLibraryItem> {

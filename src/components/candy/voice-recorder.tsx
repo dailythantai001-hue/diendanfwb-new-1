@@ -12,8 +12,11 @@ import { VOICE_MAX_SECONDS, formatVoiceDuration } from "@/lib/voice-chat";
 
 const PREVIEW_BARS = 26;
 
-/** ~64 kbps: 20s giọng nói ≈ 160 KB, vẫn rõ và tự nhiên (không rè). */
-const VOICE_BITRATE = 64000;
+/**
+ * 128 kbps ngay từ lúc ghi (Opus/AAC chất lượng cao, gần như trong suốt với
+ * giọng nói). File trình duyệt tạo ra được upload NGUYÊN BẢN — không nén lại.
+ */
+const VOICE_BITRATE = 128000;
 
 /** Ưu tiên Opus (mono, rất hiệu quả cho giọng nói); Safari cũ rơi về mp4/AAC. */
 function pickRecorderMime(): string | undefined {
@@ -78,11 +81,12 @@ export function VoiceRecorder({
     (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
+          // Tắt lọc ồn / tự chỉnh âm lượng / khử vọng của trình duyệt: các bộ lọc
+          // này gây rè, méo và "bơm" âm lượng. Giữ nguyên số kênh/sample rate gốc.
           audio: {
-            channelCount: 1,
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
           },
         });
         if (!alive) { stream.getTracks().forEach((t) => t.stop()); return; }

@@ -15,3 +15,4 @@
 - Post quota/fee: Supabase 1 RPC reserve_post_slot decides price/free slots and signs a one-use ticket; Supabase 3 posts trigger rejects inserts without a valid ticket, so every post insert must go through createPostCompat or insertPostWithTicket (lib/post-quota.ts).
 
 - Second-account (Admin Panel) posts use a SB1-signed `internal` post ticket (`reserve_internal_post_ticket`) checked by the SB3 posts trigger; never bypass the trigger by client flags — keeps real-user fee/free-quota enforcement intact.
+- ALBUM VIP (is_super) cards appear in the Code list only after its Code is entered (flashUnlockFn returns a locked card, no media); media opens only via superOpenFn which requires both server VIP check and the album's Code.

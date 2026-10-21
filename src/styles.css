@@ -70,6 +70,9 @@
 
 /* One compact attachment to the Home header, never a separate feed bar. */
 :root {
+  --super-chain-light: oklch(0.97 0.01 250);
+  --super-chain-mid: oklch(0.72 0.02 250);
+  --super-chain-dark: oklch(0.38 0.02 250);
   --sever-return-background: #000;
   --sever-return-foreground: #fff;
   --sever-return-gold: #fbe38e;
@@ -7461,3 +7464,15 @@ body[data-scroll-nav-scope="home"][data-scroll-nav-state="down"] .feed-create-fa
 .pc-verify-chip--ok { color: #14532d; background: linear-gradient(135deg, #effaf3 0%, #ddf3e6 100%); border: 1px solid rgba(34,197,94,.38); box-shadow: 0 1px 3px rgba(34,197,94,.14); }
 .pc-verify-chip--ok svg { color: #2563eb; flex: 0 0 auto; }
 .pc-verify-chip--none { color: #82878f; background: rgba(0,0,0,.03); border: 1px solid rgba(134,140,152,.32); }
+
+/* 💎 ALBUM SIÊU HOT — dây xích 3D */
+@keyframes super-chain-sway { 0%,100% { transform: rotate(var(--chain-rot)) translateY(0); } 50% { transform: rotate(var(--chain-rot)) translateY(-3px); } }
+@keyframes super-chain-fall-l { to { transform: translate(-40%, 140%) rotate(-50deg); opacity: 0; } }
+@keyframes super-chain-fall-r { to { transform: translate(40%, 140%) rotate(50deg); opacity: 0; } }
+@keyframes super-lock-pop { 0% { transform: scale(1); } 40% { transform: scale(1.25) rotate(-12deg); } 100% { transform: translateY(160%) rotate(30deg); opacity: 0; } }
+.super-chain { will-change: transform; filter: drop-shadow(0 4px 4px color-mix(in oklab, var(--foreground) 55%, transparent)); animation: super-chain-sway 3.2s ease-in-out infinite; }
+.super-chain[data-dir="r"] { animation-delay: -1.6s; }
+.super-chain-broken .super-chain[data-dir="l"] { animation: super-chain-fall-l 0.7s cubic-bezier(.5,0,.9,.4) forwards; }
+.super-chain-broken .super-chain[data-dir="r"] { animation: super-chain-fall-r 0.7s cubic-bezier(.5,0,.9,.4) forwards; }
+.super-chain-broken .super-lock { animation: super-lock-pop 0.7s ease-in forwards; }
+@media (prefers-reduced-motion: reduce) { .super-chain { animation: none; } }

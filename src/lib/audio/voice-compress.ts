@@ -119,3 +119,36 @@ export async function compressVoiceStrong(file: File | Blob, baseName = "voice")
     return original;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Thư viện voice Admin: KHÔNG còn dùng compressVoiceStrong khi upload.
+// Chỉ kiểm tra định dạng có phát được trên trình duyệt hay không.
+
+const MIME_BY_EXT: Record<string, string> = {
+  mp3: "audio/mpeg",
+  m4a: "audio/mp4",
+  aac: "audio/aac",
+  wav: "audio/wav",
+  ogg: "audio/ogg",
+  oga: "audio/ogg",
+  opus: "audio/ogg; codecs=opus",
+  webm: "audio/webm",
+  weba: "audio/webm",
+  flac: "audio/flac",
+  amr: "audio/amr",
+};
+
+/** Báo lỗi rõ ràng nếu trình duyệt hiện tại không phát được file — không tự chuyển đổi. */
+export function assertPlayableVoice(file: File | Blob, filename: string): void {
+  if (typeof document === "undefined") return;
+  const ext = (/\.([a-z0-9]+)$/i.exec(filename)?.[1] || "").toLowerCase();
+  const type = (file.type || MIME_BY_EXT[ext] || "").toLowerCase();
+  if (!type) return;
+  const probe = document.createElement("audio");
+  if (typeof probe.canPlayType !== "function") return;
+  if (probe.canPlayType(type) === "") {
+    throw new Error(
+      `Trình duyệt không phát được định dạng "${ext || type}". Hãy chuyển file sang MP3, M4A (AAC) hoặc OGG/Opus chất lượng cao trước khi tải lên — hệ thống không tự nén hay chuyển đổi để tránh giảm chất lượng.`,
+    );
+  }
+}

@@ -33,7 +33,7 @@ export function VoiceLibraryPicker({
   /** Cho phép upload / đổi tên / xoá (dùng ở Admin). */
   manage?: boolean;
   title?: string;
-  /** "sb2-compressed": nén cực mạnh + lưu Supabase #2 (Tài khoản thứ hai). */
+  /** "sb2-compressed": tên cũ giữ cho tương thích — nay lưu NGUYÊN BẢN vào Supabase #2. */
   storage?: "default" | "sb2-compressed";
 }) {
   const [items, setItems] = useState<VoiceLibraryItem[]>([]);

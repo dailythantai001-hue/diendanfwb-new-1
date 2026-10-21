@@ -7,6 +7,16 @@ import { useAuth } from "@/components/candy/auth-provider";
 import { fetchFlashZalo } from "@/lib/flash-album-zalo";
 import { openExternalLink } from "@/lib/external-link";
 import { hotPublicFn, type HotBanner } from "@/lib/hot-content.functions";
+import { VipAlbumCard } from "@/components/candy/super-album-section";
+import type { SuperCodeCard } from "@/lib/super-albums.server";
+
+const vipKey = (uid: string) => `album_vip_codes:${uid || "guest"}`;
+function readVipCodes(uid: string): string[] {
+  try { const v = JSON.parse(window.localStorage.getItem(vipKey(uid)) || "[]"); return Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, 50) : []; } catch { return []; }
+}
+function writeVipCodes(uid: string, codes: string[]) {
+  try { window.localStorage.setItem(vipKey(uid), JSON.stringify([...new Set(codes)])); } catch { /* bỏ qua */ }
+}
 
 /** Catbox bị chặn trên nhiều mạng di động → phát cùng URL qua relay cùng tên miền. */
 function mediaSrc(url: string) {
@@ -48,6 +58,7 @@ export function FlashAlbumTab() {
   const userId = auth.session?.user?.id ?? auth.me?.id ?? "";
   const [albums, setAlbums] = useState<FlashLockedCard[]>([]);
   const [unlocked, setUnlocked] = useState<Record<string, FlashAlbum>>({});
+  const [vipCards, setVipCards] = useState<Record<string, SuperCodeCard>>({});
   const [loaded, setLoaded] = useState(false);
   const [listError, setListError] = useState(false);
   const [zaloLink, setZaloLink] = useState("");
@@ -272,12 +283,36 @@ export function FlashAlbumTab() {
     return () => { alive = false; if (retry) window.clearTimeout(retry); };
   }, [userId]);
 
+  // Thẻ ALBUM VIP đã nhập Code: lưu Code trên thiết bị, máy chủ xác thực lại mỗi lần tải.
+  useEffect(() => {
+    setVipCards({});
+    const codes = readVipCodes(userId);
+    if (!codes.length) return;
+    let alive = true;
+    void Promise.all(codes.map((c) => flashUnlockFn({ data: { code: c } }).catch(() => null))).then((rs) => {
+      if (!alive) return;
+      const next: Record<string, SuperCodeCard> = {};
+      for (const r of rs) if (r && r.ok && r.vip) next[r.card.code] = r.card;
+      if (rs.every(Boolean)) writeVipCodes(userId, Object.keys(next));
+      setVipCards(next);
+    });
+    return () => { alive = false; };
+  }, [userId]);
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!code.trim()) { setErr("Code không đúng"); return; }
     let r: Awaited<ReturnType<typeof flashUnlockFn>>;
     try { r = await flashUnlockFn({ data: { code, userId: userId || undefined } }); } catch { setErr("Code không đúng"); return; }
     if (!r.ok) { setErr("Code không đúng"); return; }
+    if (r.vip) {
+      // Album VIP: chỉ hiện thẻ khóa; mở nội dung cần VIP Zalo (xác minh máy chủ).
+      const card = r.card;
+      setVipCards((cur) => ({ ...cur, [card.code]: card }));
+      writeVipCodes(userId, [...readVipCodes(userId), card.code]);
+      setErr(""); setCode(""); setInputOpen(false); setActiveCode(card.code);
+      return;
+    }
     const album = r.album;
     // Chỉ lưu sau khi máy chủ xác nhận Code đúng.
     if (userId) saveUnlock(window.localStorage, userId, album.id, album.code, r.token);
@@ -326,8 +361,12 @@ export function FlashAlbumTab() {
   const zoomLabel = Math.abs(zoom - Math.round(zoom)) < 0.05 ? `${Math.round(zoom)}` : zoom.toFixed(1);
 
   // Album đã mở hiển thị theo thứ tự danh sách; album đã mở nhưng id đổi (Code cũ được đồng bộ) vẫn hiện.
-  const listOrder = new Map(albums.map(({ id }, i) => [id, i]));
-  const visibleUnlocked = Object.values(unlocked).sort((a, b) => (listOrder.get(a.id) ?? 1e9) - (listOrder.get(b.id) ?? 1e9));
+  // Gộp album thường + VIP theo đúng thứ tự Admin (mới tạo trước, giống danh sách máy chủ).
+  type Item = { kind: "normal"; album: FlashAlbum; at: string } | { kind: "vip"; card: SuperCodeCard; at: string };
+  const visibleUnlocked: Item[] = [
+    ...Object.values(unlocked).map((album) => ({ kind: "normal" as const, album, at: String(album.created_at || "") })),
+    ...Object.values(vipCards).map((card) => ({ kind: "vip" as const, card, at: String(card.created_at || "") })),
+  ].sort((a, b) => b.at.localeCompare(a.at));
 
   return (
     <div className="page-flash-album mx-auto min-h-full w-full max-w-4xl px-4 pb-28 pt-5 sm:px-6">
@@ -371,7 +410,9 @@ export function FlashAlbumTab() {
           </div>
         )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {visibleUnlocked.map((album) => {
+          {visibleUnlocked.map((item) => {
+            if (item.kind === "vip") return <VipAlbumCard key={`vip-${item.card.id}`} card={item.card} highlight={activeCode === item.card.code} onOpen={(a) => void openAlbum(a)} />;
+            const album = item.album;
             const cover = (album.media ?? []).find((m) => m.id === album.cover_media_id && m.kind === "image") || (album.media ?? []).find((m) => m.kind === "image");
             const firstVideo = (album.media ?? []).find((m) => m.kind === "video");
             const highlight = activeCode === album.code ? "border-primary ring-2 ring-primary/50" : "border-border";
@@ -408,6 +449,7 @@ export function FlashAlbumTab() {
           })}
         </div>
       </section>}
+
 
       {inputOpen && (
         <div

@@ -43,11 +43,13 @@ export interface CommonLockedPopupProps {
   contactLink?: string | null;
   /** Class bổ sung cho popup card. Dùng để scope style riêng (vd: Album). */
   className?: string;
+  /** Tiêu đề cố định cho riêng ngữ cảnh gọi (vd: Album VIP) — mặc định dùng tiêu đề Admin. */
+  forceTitle?: string;
 }
 
 const isImage = (v: string) => /^(https?:\/\/|\/|data:image)/i.test(v);
 
-export function CommonLockedPopup({ open, onClose, featureName, groupName, variant }: CommonLockedPopupProps) {
+export function CommonLockedPopup({ open, onClose, featureName, groupName, variant, forceTitle }: CommonLockedPopupProps) {
   const cfg = useVipUnlockConfig();
   const fallbackLink = useVipUnlockLink();
   const { me } = useAuth();
@@ -70,7 +72,7 @@ export function CommonLockedPopup({ open, onClose, featureName, groupName, varia
   // Tiêu đề LUÔN lấy từ Admin Panel → "Quản lý Popup Chung" ({location} thay động).
   // Không dùng tên nhóm để tạo tiêu đề riêng.
   void groupName;
-  const headTitle = rt(cfg.title);
+  const headTitle = forceTitle || rt(cfg.title);
   const body = rt((cfg.message || "").trim());
   const buttonText = rt(cfg.buttonLabel || "Liên Hệ Admin");
   const media = (cfg.headerMedia || cfg.icon || "🔒").trim();

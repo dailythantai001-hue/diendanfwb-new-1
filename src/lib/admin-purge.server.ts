@@ -109,6 +109,28 @@ export async function verifyAdmin(accessToken: string | undefined): Promise<Admi
   return { ok: false, reason: "FORBIDDEN: tài khoản này không phải admin." };
 }
 
+/**
+ * Xác minh phía máy chủ: token thuộc user VIP hợp lệ (hoặc admin).
+ * Dùng đúng quy tắc VIP hiện có (isVipProfile) trên hồ sơ Supabase #1.
+ */
+export async function verifyVipUser(accessToken: string | undefined): Promise<{ ok: boolean; uid: string | null }> {
+  const token = (accessToken || "").trim();
+  if (!token) return { ok: false, uid: null };
+  const res = await fetch(`${CONN.sb1.url}/auth/v1/user`, {
+    headers: { apikey: SB1_ANON, Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return { ok: false, uid: null };
+  const uid = ((await res.json()) as { id?: string })?.id;
+  if (!uid || !serviceKey("sb1")) return { ok: false, uid: uid ?? null };
+  const admin = await verifyAdmin(token);
+  if (admin.ok) return { ok: true, uid };
+  const pf = await fetch(`${CONN.sb1.url}/rest/v1/profiles?id=eq.${uid}&select=*&limit=1`, { headers: headers("sb1") });
+  if (!pf.ok) return { ok: false, uid };
+  const row = ((await pf.json()) as Array<Record<string, unknown>>)?.[0];
+  const { isVipProfile } = await import("@/lib/vip-status");
+  return { ok: isVipProfile(row as any), uid };
+}
+
 /* ------------------------- Đếm / Xoá qua PostgREST ------------------------ */
 
 /** Đếm chính xác (privileged) — trả null nếu lỗi. */

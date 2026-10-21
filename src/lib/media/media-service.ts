@@ -275,16 +275,19 @@ export async function uploadClonePostMediaUrl(file: File | Blob): Promise<string
 }
 
 /**
- * Voice bài đăng của "Tài khoản thứ hai" — nén CỰC MẠNH (mono 16kHz, Opus
- * ~16kbps) rồi lưu vào Supabase #2. Không lưu bản gốc, không đi qua R2.
+ * Voice thư viện Admin / "Tài khoản thứ hai" — lưu vào Supabase #2.
+ * Upload NGUYÊN BẢN file gốc (giữ định dạng, bitrate, sample rate, số kênh).
+ * KHÔNG giải mã / mã hoá lại. Nếu trình duyệt không phát được định dạng này
+ * thì báo lỗi rõ ràng thay vì âm thầm chuyển đổi làm giảm chất lượng.
  */
 export async function uploadCloneVoiceUrl(file: File | Blob): Promise<string> {
-  const { compressVoiceStrong } = await import("@/lib/audio/voice-compress");
-  const compressed = await compressVoiceStrong(file, `clone-voice-${Date.now()}`);
+  const { assertPlayableVoice } = await import("@/lib/audio/voice-compress");
+  const filename = (file as File).name || `clone-voice-${Date.now()}`;
+  assertPlayableVoice(file, filename);
   if (!supabaseMediaProvider.isEnabled()) {
     throw new Error("Kho media (Supabase #2) chưa sẵn sàng — không thể lưu voice.");
   }
-  const uploaded = await supabaseMediaProvider.upload(compressed, compressed.name, {
+  const uploaded = await supabaseMediaProvider.upload(file, filename, {
     kind: "other",
     compress: false,
   });
