@@ -19,11 +19,11 @@ import {
   flashListFn,
   flashPurgeAllFn,
   flashRenameFn,
+  flashSetDisplayCountsFn,
   flashSignUploadsFn,
   type FlashAlbum,
 } from "@/lib/flash-albums.functions";
 
-const BUCKET = "flash-albums";
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 type Kind = "image" | "video";
 type Draft = { key: string; kind: Kind; url?: string; file?: File; preview: string };
@@ -76,7 +76,7 @@ async function uploadFiles(t: string, albumId: string, files: { kind: Kind; file
   const signed = await flashSignUploadsFn({ data: { token: t, id: albumId, files: prepared.map((p) => ({ kind: p.kind, ext: extOf(p.file) })) } });
   const out: NewItem[] = [];
   for (let i = 0; i < prepared.length; i++) {
-    const { error } = await sb4().storage.from(BUCKET).uploadToSignedUrl(signed[i].path, signed[i].token, prepared[i].file, {
+    const { error } = await sb4().storage.from(signed[i].bucket || "flash-albums").uploadToSignedUrl(signed[i].path, signed[i].token, prepared[i].file, {
       contentType: prepared[i].file.type, cacheControl: "31536000",
     } as any);
     if (error) throw new Error(`${prepared[i].file.name}: ${error.message}`);
@@ -155,7 +155,28 @@ function MediaThumb({ kind, src, onRemove, disabled }: { kind: Kind; src: string
   );
 }
 
+type Tier = "hot" | "super";
+
 export function FlashAlbumsManager() {
+  const [tier, setTier] = useState<Tier>("hot");
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Loại album">
+        {([["hot", "⚡ ALBUM HOT"], ["super", "💎 ALBUM SIÊU HOT"]] as const).map(([k, label]) => (
+          <button key={k} type="button" role="tab" aria-selected={tier === k} onClick={() => setTier(k)}
+            className={`rounded-md border px-3 py-1.5 text-sm font-bold ${tier === k ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <AlbumsPanel key={tier} tier={tier} />
+    </div>
+  );
+}
+
+function AlbumsPanel({ tier }: { tier: Tier }) {
+  const isSuper = tier === "super";
+  const title = isSuper ? "ALBUM SIÊU HOT" : "Album HOT";
   const [albums, setAlbums] = useState<FlashAlbum[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -170,16 +191,21 @@ export function FlashAlbumsManager() {
   // Sửa
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  // Số lượng HIỂN THỊ tùy chỉnh (ALBUM SIÊU HOT) — tách biệt hoàn toàn với media thực tế.
+  const [dispImg, setDispImg] = useState("");
+  const [dispVid, setDispVid] = useState("");
 
   const load = useCallback(async () => {
     try {
-      setAlbums(await flashListFn({ data: { token: await token() } }));
+      setAlbums(await flashListFn({ data: { token: await token(), tier } }));
     } catch (e: any) {
-      toast.error(e?.message || "Không tải được album");
+      const msg = e?.message || "Không tải được album";
+      // Cùng một nguyên nhân (vd. thiếu khoá máy chủ) chỉ hiện 1 thông báo.
+      toast.error(msg, { id: `album-load:${msg}` });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tier]);
 
   useEffect(() => {
     void load();
@@ -232,20 +258,20 @@ export function FlashAlbumsManager() {
   };
 
   const create = async () => {
-    const title = newName.trim();
-    if (!title) { setCreateErr("Vui lòng nhập tiêu đề album."); return; }
+    const albumTitle = newName.trim();
+    if (!albumTitle) { setCreateErr("Vui lòng nhập tiêu đề album."); return; }
     setBusy("create");
     setCreateErr(null);
     try {
       const t = await token();
-      const { id, code } = await flashCreateFn({ data: { token: t, name: title } });
+      const { id, code } = await flashCreateFn({ data: { token: t, name: albumTitle, tier } });
       // Thứ tự hiển thị: ảnh trước, video sau, theo đúng thứ tự admin đã thêm.
       const ordered = [...drafts.filter((d) => d.kind === "image"), ...drafts.filter((d) => d.kind === "video")];
       const uploaded = await uploadFiles(t, id, ordered.filter((d) => d.file).map((d) => ({ kind: d.kind, file: d.file! })));
       let u = 0;
       const items: NewItem[] = ordered.map((d) => (d.file ? uploaded[u++] : { kind: d.kind, url: d.url }));
       if (items.length) await flashAddMediaFn({ data: { token: t, id, items } });
-      toast.success(`Đã tạo Album HOT — Code: ${code}`);
+      toast.success(`Đã tạo ${title} — Code: ${code}`);
       drafts.forEach((d) => d.file && URL.revokeObjectURL(d.preview));
       setDrafts([]); setNewName(""); setCreateOpen(false);
       await load();
@@ -260,10 +286,10 @@ export function FlashAlbumsManager() {
   };
 
   const purgeAll = () => {
-    const v = window.prompt('Xóa TOÀN BỘ Album HOT + ảnh/video (không ảnh hưởng module khác).\nGõ "XOA" để xác nhận:');
+    const v = window.prompt(`Xóa TOÀN BỘ ${title} + ảnh/video (không ảnh hưởng loại album còn lại).\nGõ "XOA" để xác nhận:`);
     if (v !== "XOA") return;
     void run("purge", async () => {
-      const r = await flashPurgeAllFn({ data: { token: await token(), confirm: "XOA" } });
+      const r = await flashPurgeAllFn({ data: { token: await token(), confirm: "XOA", tier } });
       toast.success(`Đã xóa ${r.albums} album, ${r.files} tệp`);
     });
   };
@@ -275,10 +301,10 @@ export function FlashAlbumsManager() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-bold">⚡ ALBUM HOT</h2>
+        <h2 className="text-lg font-bold">{isSuper ? "💎 ALBUM SIÊU HOT" : "⚡ ALBUM HOT"}</h2>
         <div className="flex gap-2">
           <button type="button" className="admv3-btn" onClick={() => setCreateOpen(true)} disabled={!!busy}>
-            <Plus size={14} /> Tạo Album HOT
+            <Plus size={14} /> Tạo {title}
           </button>
           <button type="button" className="admv3-btn" onClick={purgeAll} disabled={!!busy || !albums.length}>
             <Trash2 size={14} /> Xóa tất cả
@@ -286,7 +312,7 @@ export function FlashAlbumsManager() {
         </div>
       </div>
 
-      <section aria-label="Danh sách Album HOT">
+      <section aria-label={`Danh sách ${title}`}>
         {loading ? (
           <p className="text-sm text-muted-foreground">Đang tải…</p>
         ) : !albums.length ? (
@@ -304,7 +330,7 @@ export function FlashAlbumsManager() {
                     ) : firstVideo ? (
                       <video src={`${firstVideo.url}#t=0.1`} muted playsInline preload="metadata" className="pointer-events-none h-full w-full object-cover" />
                     ) : (
-                      <div className="grid h-full place-items-center text-3xl">⚡</div>
+                      <div className="grid h-full place-items-center text-3xl">{isSuper ? "💎" : "⚡"}</div>
                     )}
                   </div>
                   <div className="space-y-1 p-3">
@@ -313,7 +339,7 @@ export function FlashAlbumsManager() {
                     <div className="text-xs text-muted-foreground">{countLabel((a.media ?? []))}</div>
                     <div className="text-[11px] text-muted-foreground">👁 {a.view_count} · ❤ {a.like_count}</div>
                     <div className="flex gap-2 pt-1">
-                      <Button type="button" size="sm" variant="outline" onClick={() => { setEditId(a.id); setEditName(a.name); }}><Pencil size={14} /> Sửa</Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => { setEditId(a.id); setEditName(a.name); setDispImg(a.display_image_count == null ? "" : String(a.display_image_count)); setDispVid(a.display_video_count == null ? "" : String(a.display_video_count)); }}><Pencil size={14} /> Sửa</Button>
                       <Button type="button" size="sm" variant="outline" disabled={!!busy} onClick={() => { if (window.confirm(`Xóa album ${a.code}?`)) void run("del", async () => flashDeleteFn({ data: { token: await token(), id: a.id } }), "Đã xóa album"); }}><Trash2 size={14} /></Button>
                     </div>
                   </div>
@@ -324,6 +350,11 @@ export function FlashAlbumsManager() {
         )}
       </section>
 
+      {isSuper ? (
+        <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+          🔗 Chỉ thành viên VIP mới xem được nội dung. Người chưa VIP bấm vào Code sẽ thấy popup tham gia nhóm VIP — popup và link lấy từ cài đặt VIP hiện có.
+        </p>
+      ) : (<>
       <div className="rounded-lg border border-border bg-card p-4">
         <div className="mb-3 flex items-center gap-2 font-semibold">
           <Link2 size={18} className="text-primary" />
@@ -338,19 +369,20 @@ export function FlashAlbumsManager() {
       </div>
 
       <HotContentManager />
+      </>)}
 
       {createOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 p-2 sm:p-4" onClick={closeCreate}>
           <form
             role="dialog"
             aria-modal="true"
-            aria-label="Tạo Album HOT"
+            aria-label={`Tạo ${title}`}
             className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-card shadow-xl"
             onClick={(e) => e.stopPropagation()}
             onSubmit={(e) => { e.preventDefault(); void create(); }}
           >
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
-              <h3 className="text-lg font-bold">Tạo Album HOT</h3>
+              <h3 className="text-lg font-bold">Tạo {title}</h3>
               <Button type="button" size="icon" variant="ghost" onClick={closeCreate} disabled={busy === "create"} aria-label="Đóng"><X size={18} /></Button>
             </div>
             <div className="space-y-6 overflow-y-auto px-4 py-4 sm:px-6">
@@ -381,7 +413,7 @@ export function FlashAlbumsManager() {
               {createErr && <p className="text-sm font-medium text-destructive">{createErr}</p>}
             </div>
             <div className="border-t border-border px-4 py-3 sm:px-6">
-              <Button type="submit" className="w-full" disabled={busy === "create"}>{busy === "create" ? "Đang tạo…" : "TẠO ALBUM HOT"}</Button>
+              <Button type="submit" className="w-full" disabled={busy === "create"}>{busy === "create" ? "Đang tạo…" : `TẠO ${title.toUpperCase()}`}</Button>
             </div>
           </form>
         </div>
@@ -402,6 +434,26 @@ export function FlashAlbumsManager() {
                 <input className="flash-create-input min-w-0" value={editName} maxLength={120} onChange={(e) => setEditName(e.target.value)} />
                 <Button type="button" disabled={!!busy || !editName.trim() || editName.trim() === editing.name} onClick={() => void run("rename", async () => flashRenameFn({ data: { token: await token(), id: editing.id, name: editName.trim() } }), "Đã sửa tiêu đề")}><Save size={15} /> Lưu</Button>
               </div>
+              {isSuper && (() => {
+                const parse = (v: string) => (v.trim() === "" ? null : Number(v));
+                const valid = [dispImg, dispVid].every((v) => v.trim() === "" || /^\d+$/.test(v.trim()));
+                return (
+                  <section className="space-y-2 rounded-md border border-border p-3">
+                    <h4 className="text-sm font-bold">Số lượng hiển thị ngoài website</h4>
+                    <p className="text-xs text-muted-foreground">Chỉ là số hiển thị trên thẻ album, không thay đổi media thực tế. Để trống = dùng số media thực tế.</p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                      <label className="space-y-1 text-xs font-semibold">Số lượng ảnh hiển thị
+                        <input type="number" inputMode="numeric" min={0} step={1} className="flash-create-input w-full" value={dispImg} placeholder={String((editing.media ?? []).filter((m) => m.kind === "image").length)} onChange={(e) => setDispImg(e.target.value)} />
+                      </label>
+                      <label className="space-y-1 text-xs font-semibold">Số lượng video hiển thị
+                        <input type="number" inputMode="numeric" min={0} step={1} className="flash-create-input w-full" value={dispVid} placeholder={String((editing.media ?? []).filter((m) => m.kind === "video").length)} onChange={(e) => setDispVid(e.target.value)} />
+                      </label>
+                      <Button type="button" className="self-end" disabled={!!busy || !valid} onClick={() => void run("counts", async () => flashSetDisplayCountsFn({ data: { token: await token(), id: editing.id, images: parse(dispImg), videos: parse(dispVid) } }), "Đã lưu số lượng hiển thị")}><Save size={15} /> Lưu số lượng</Button>
+                    </div>
+                    {!valid && <p className="text-xs font-medium text-destructive">Chỉ nhập số nguyên không âm.</p>}
+                  </section>
+                );
+              })()}
               {(["image", "video"] as const).map((kind) => {
                 const list = (editing.media ?? []).filter((m) => m.kind === kind);
                 return (

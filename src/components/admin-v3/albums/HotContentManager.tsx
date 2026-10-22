@@ -25,7 +25,9 @@ export function HotContentManager() {
       const result = await hotAdminListFn({ data: { token: await adminToken() } });
       setBanners(result.banners);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không tải được nội dung HOT.");
+      const msg = error instanceof Error ? error.message : "Không tải được nội dung HOT.";
+      // Dùng chung id với FlashAlbumsManager để cùng nguyên nhân không lặp thông báo.
+      toast.error(msg, { id: `album-load:${msg}` });
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
