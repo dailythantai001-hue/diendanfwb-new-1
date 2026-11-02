@@ -1,0 +1,97 @@
+/* A prepainted, pointer-transparent highlight; only opacity is animated. */
+nav.ios-dock .ios-dock__tab.ios-dock__tab--search:not(.is-active) {
+  color: var(--search-nav-accent) !important;
+}
+nav.ios-dock .ios-dock__tab--search .ios-dock__label {
+  font-weight: 800;
+}
+@media (max-width: 767px) {
+  nav.ios-dock .ios-dock__tab--search .ios-dock__icon {
+    position: relative;
+    isolation: isolate;
+  }
+  nav.ios-dock .ios-dock__tab--search .ios-dock__icon::before {
+    content: "";
+    position: absolute;
+    inset: -4px -5px;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: -1;
+    background: var(--search-nav-glow-surface);
+    box-shadow: var(--search-nav-glow-shadow);
+    opacity: 0.34;
+    animation: search-nav-soft-pulse 12s ease-in-out infinite;
+  }
+}
+
+@keyframes search-nav-soft-pulse {
+  0%, 22%, 50%, 70%, 100% { opacity: 0.34; }
+  12%, 38% { opacity: 0.50; }
+  79% { opacity: 0.76; }
+  88% { opacity: 0.38; }
+  93% { opacity: 0.60; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  nav.ios-dock .ios-dock__tab--search .ios-dock__icon::before {
+    animation: none;
+    opacity: 0.34;
+  }
+}
+/* ---- 3D Tìm Bạn magnifier: transform/opacity-only animation (GPU, no layout) ---- */
+.search3d {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  isolation: isolate;
+}
+.search3d::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  background: var(--search3d-halo);
+  z-index: -1;
+  opacity: 0.55;
+  pointer-events: none;
+  animation: search3d-halo 3.2s ease-in-out infinite;
+}
+.search3d__svg {
+  display: block;
+  animation: search3d-float 3.2s ease-in-out infinite;
+  will-change: transform;
+}
+.search3d__sheen {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--search3d-shine);
+  opacity: 0;
+  pointer-events: none;
+  animation: search3d-sparkle 6.4s ease-in-out infinite;
+}
+.search3d--active .search3d__svg { transform: translateY(-1px) scale(1.06); }
+.search3d--active::before { opacity: 0.85; }
+@keyframes search3d-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(-4deg); }
+}
+@keyframes search3d-halo {
+  0%, 100% { opacity: 0.45; transform: scale(0.94); }
+  50% { opacity: 0.8; transform: scale(1.04); }
+}
+@keyframes search3d-sparkle {
+  0%, 70%, 100% { opacity: 0; transform: scale(0.4); }
+  78% { opacity: 0.95; transform: scale(1); }
+  86% { opacity: 0; transform: scale(0.6); }
+}
+/* The old flat glow box is replaced by the 3D halo. */
+nav.ios-dock .ios-dock__tab--search .ios-dock__icon::before { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .search3d::before, .search3d__svg, .search3d__sheen { animation: none; }
+}

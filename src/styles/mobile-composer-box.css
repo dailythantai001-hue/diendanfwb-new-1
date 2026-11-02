@@ -1,0 +1,25 @@
+/* Last presentation pass; no quota or group-action behavior changes. */
+.pc-card .pc-reactions .pc-action.pc-group-action {
+  width: auto !important;
+  min-width: 36px !important;
+  padding: 0 9px;
+  gap: 5px;
+}
+.pc-card .pc-reactions .pc-group-action .pc-group-label {
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1;
+}
+@media (max-width: 767px) {
+  .composer-card .composer-quota-warning { display: none !important; }
+  .pc-card .pc-reactions .pc-action.pc-group-action {
+    height: 32px !important;
+    min-width: 0 !important;
+    padding: 0 7px !important;
+    gap: 4px !important;
+    flex-shrink: 0;
+  }
+  .pc-card .pc-reactions .pc-group-action .pc-group-label {
+    font-size: 11.5px;
+  }
+}

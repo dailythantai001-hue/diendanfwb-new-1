@@ -19,7 +19,7 @@ import "@/styles/wallet-pill.css";
 import { useLanguage } from "@/i18n/context";
 import { SiteLogo } from "@/components/candy/site-logo";
 import { SeverPicker } from "@/components/candy/sever-picker";
-import { FeedbackZaloBack, FeedbackZaloEntry } from "@/components/candy/feedback-zalo";
+import { FeedbackZaloBack } from "@/components/candy/feedback-zalo";
 
 
 
@@ -286,7 +286,6 @@ export function AppHeader({
 
       {showCommunityBadge ? (
         <div className="app-header__badge-group">
-          <FeedbackZaloEntry />
           <SeverPicker />
         </div>
       ) : null}

@@ -31,6 +31,7 @@ import { Route as PetRouteImport } from './routes/pet'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as QaExploreRouteImport } from './routes/qa-explore'
 import { Route as QaSeverLockRouteImport } from './routes/qa-sever-lock'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuggestedRouteImport } from './routes/suggested'
 import { Route as VerifyRouteImport } from './routes/verify'
@@ -39,6 +40,7 @@ import { Route as VipCommunityRouteImport } from './routes/vip-community'
 import { Route as _testBottomNavRouteImport } from './routes/__test.bottom-nav'
 import { Route as _testDockRouteImport } from './routes/__test.dock'
 import { Route as _testFeedRouteImport } from './routes/__test.feed'
+import { Route as Char91__testChar93NameGifRouteImport } from './routes/[__test].name-gif'
 import { Route as _testVideomediaRouteImport } from './routes/__test.videomedia'
 import { Route as AccountUserIdRouteImport } from './routes/account.$userId'
 import { Route as ChatUserIdRouteImport } from './routes/chat.$userId'
@@ -50,6 +52,7 @@ import { Route as UUserIdRouteImport } from './routes/u.$userId'
 import { Route as WalletIndexRouteImport } from './routes/wallet.index'
 import { Route as WalletWithdrawRouteImport } from './routes/wallet.withdraw'
 import { Route as ApiPublicAdminResetChatRouteImport } from './routes/api/public/admin-reset-chat'
+import { Route as ApiPublicAdminReviewPostRouteImport } from './routes/api/public/admin-review-post'
 import { Route as ApiPublicAuditReadonlyRouteImport } from './routes/api/public/audit-readonly'
 import { Route as ApiPublicAutoApproveCronRouteImport } from './routes/api/public/auto-approve-cron'
 import { Route as ApiPublicClientIpRouteImport } from './routes/api/public/client-ip'
@@ -177,6 +180,11 @@ const QaSeverLockRoute = QaSeverLockRouteImport.update({
   path: '/qa-sever-lock',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -217,6 +225,12 @@ const _testFeedRoute = _testFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91__testChar93NameGifRoute =
+  Char91__testChar93NameGifRouteImport.update({
+    id: '/__test/name-gif',
+    path: '/__test/name-gif',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const _testVideomediaRoute = _testVideomediaRouteImport.update({
   id: '/__test/videomedia',
   path: '/videomedia',
@@ -272,6 +286,12 @@ const ApiPublicAdminResetChatRoute = ApiPublicAdminResetChatRouteImport.update({
   path: '/api/public/admin-reset-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAdminReviewPostRoute =
+  ApiPublicAdminReviewPostRouteImport.update({
+    id: '/api/public/admin-review-post',
+    path: '/api/public/admin-review-post',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAuditReadonlyRoute = ApiPublicAuditReadonlyRouteImport.update({
   id: '/api/public/audit-readonly',
   path: '/api/public/audit-readonly',
@@ -378,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRouteWithChildren
   '/qa-explore': typeof QaExploreRoute
   '/qa-sever-lock': typeof QaSeverLockRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggested': typeof SuggestedRoute
   '/verify': typeof VerifyRoute
@@ -386,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/bottom-nav': typeof _testBottomNavRoute
   '/dock': typeof _testDockRoute
   '/feed': typeof _testFeedRoute
+  '/__test/name-gif': typeof Char91__testChar93NameGifRoute
   '/videomedia': typeof _testVideomediaRoute
   '/account/$userId': typeof AccountUserIdRoute
   '/chat/$userId': typeof ChatUserIdRoute
@@ -397,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/wallet/withdraw': typeof WalletWithdrawRoute
   '/wallet/': typeof WalletIndexRoute
   '/api/public/admin-reset-chat': typeof ApiPublicAdminResetChatRoute
+  '/api/public/admin-review-post': typeof ApiPublicAdminReviewPostRoute
   '/api/public/audit-readonly': typeof ApiPublicAuditReadonlyRoute
   '/api/public/auto-approve-cron': typeof ApiPublicAutoApproveCronRoute
   '/api/public/client-ip': typeof ApiPublicClientIpRoute
@@ -437,6 +460,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRouteWithChildren
   '/qa-explore': typeof QaExploreRoute
   '/qa-sever-lock': typeof QaSeverLockRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggested': typeof SuggestedRoute
   '/verify': typeof VerifyRoute
@@ -445,6 +469,7 @@ export interface FileRoutesByTo {
   '/bottom-nav': typeof _testBottomNavRoute
   '/dock': typeof _testDockRoute
   '/feed': typeof _testFeedRoute
+  '/__test/name-gif': typeof Char91__testChar93NameGifRoute
   '/videomedia': typeof _testVideomediaRoute
   '/account/$userId': typeof AccountUserIdRoute
   '/chat/$userId': typeof ChatUserIdRoute
@@ -456,6 +481,7 @@ export interface FileRoutesByTo {
   '/wallet/withdraw': typeof WalletWithdrawRoute
   '/wallet': typeof WalletIndexRoute
   '/api/public/admin-reset-chat': typeof ApiPublicAdminResetChatRoute
+  '/api/public/admin-review-post': typeof ApiPublicAdminReviewPostRoute
   '/api/public/audit-readonly': typeof ApiPublicAuditReadonlyRoute
   '/api/public/auto-approve-cron': typeof ApiPublicAutoApproveCronRoute
   '/api/public/client-ip': typeof ApiPublicClientIpRoute
@@ -497,6 +523,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRouteWithChildren
   '/qa-explore': typeof QaExploreRoute
   '/qa-sever-lock': typeof QaSeverLockRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggested': typeof SuggestedRoute
   '/verify': typeof VerifyRoute
@@ -505,6 +532,7 @@ export interface FileRoutesById {
   '/__test/bottom-nav': typeof _testBottomNavRoute
   '/__test/dock': typeof _testDockRoute
   '/__test/feed': typeof _testFeedRoute
+  '/__test/name-gif': typeof Char91__testChar93NameGifRoute
   '/__test/videomedia': typeof _testVideomediaRoute
   '/account/$userId': typeof AccountUserIdRoute
   '/chat/$userId': typeof ChatUserIdRoute
@@ -516,6 +544,7 @@ export interface FileRoutesById {
   '/wallet/withdraw': typeof WalletWithdrawRoute
   '/wallet/': typeof WalletIndexRoute
   '/api/public/admin-reset-chat': typeof ApiPublicAdminResetChatRoute
+  '/api/public/admin-review-post': typeof ApiPublicAdminReviewPostRoute
   '/api/public/audit-readonly': typeof ApiPublicAuditReadonlyRoute
   '/api/public/auto-approve-cron': typeof ApiPublicAutoApproveCronRoute
   '/api/public/client-ip': typeof ApiPublicClientIpRoute
@@ -558,6 +587,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qa-explore'
     | '/qa-sever-lock'
+    | '/search'
     | '/sitemap.xml'
     | '/suggested'
     | '/verify'
@@ -566,6 +596,7 @@ export interface FileRouteTypes {
     | '/bottom-nav'
     | '/dock'
     | '/feed'
+    | '/__test/name-gif'
     | '/videomedia'
     | '/account/$userId'
     | '/chat/$userId'
@@ -577,6 +608,7 @@ export interface FileRouteTypes {
     | '/wallet/withdraw'
     | '/wallet/'
     | '/api/public/admin-reset-chat'
+    | '/api/public/admin-review-post'
     | '/api/public/audit-readonly'
     | '/api/public/auto-approve-cron'
     | '/api/public/client-ip'
@@ -617,6 +649,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qa-explore'
     | '/qa-sever-lock'
+    | '/search'
     | '/sitemap.xml'
     | '/suggested'
     | '/verify'
@@ -625,6 +658,7 @@ export interface FileRouteTypes {
     | '/bottom-nav'
     | '/dock'
     | '/feed'
+    | '/__test/name-gif'
     | '/videomedia'
     | '/account/$userId'
     | '/chat/$userId'
@@ -636,6 +670,7 @@ export interface FileRouteTypes {
     | '/wallet/withdraw'
     | '/wallet'
     | '/api/public/admin-reset-chat'
+    | '/api/public/admin-review-post'
     | '/api/public/audit-readonly'
     | '/api/public/auto-approve-cron'
     | '/api/public/client-ip'
@@ -676,6 +711,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qa-explore'
     | '/qa-sever-lock'
+    | '/search'
     | '/sitemap.xml'
     | '/suggested'
     | '/verify'
@@ -684,6 +720,7 @@ export interface FileRouteTypes {
     | '/__test/bottom-nav'
     | '/__test/dock'
     | '/__test/feed'
+    | '/__test/name-gif'
     | '/__test/videomedia'
     | '/account/$userId'
     | '/chat/$userId'
@@ -695,6 +732,7 @@ export interface FileRouteTypes {
     | '/wallet/withdraw'
     | '/wallet/'
     | '/api/public/admin-reset-chat'
+    | '/api/public/admin-review-post'
     | '/api/public/audit-readonly'
     | '/api/public/auto-approve-cron'
     | '/api/public/client-ip'
@@ -736,6 +774,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRouteWithChildren
   QaExploreRoute: typeof QaExploreRoute
   QaSeverLockRoute: typeof QaSeverLockRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuggestedRoute: typeof SuggestedRoute
   VerifyRoute: typeof VerifyRoute
@@ -744,6 +783,7 @@ export interface RootRouteChildren {
   _testBottomNavRoute: typeof _testBottomNavRoute
   _testDockRoute: typeof _testDockRoute
   _testFeedRoute: typeof _testFeedRoute
+  Char91__testChar93NameGifRoute: typeof Char91__testChar93NameGifRoute
   _testVideomediaRoute: typeof _testVideomediaRoute
   AccountUserIdRoute: typeof AccountUserIdRoute
   PostPostIdRoute: typeof PostPostIdRoute
@@ -753,6 +793,7 @@ export interface RootRouteChildren {
   WalletWithdrawRoute: typeof WalletWithdrawRoute
   WalletIndexRoute: typeof WalletIndexRoute
   ApiPublicAdminResetChatRoute: typeof ApiPublicAdminResetChatRoute
+  ApiPublicAdminReviewPostRoute: typeof ApiPublicAdminReviewPostRoute
   ApiPublicAuditReadonlyRoute: typeof ApiPublicAuditReadonlyRoute
   ApiPublicAutoApproveCronRoute: typeof ApiPublicAutoApproveCronRoute
   ApiPublicClientIpRoute: typeof ApiPublicClientIpRoute
@@ -927,6 +968,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QaSeverLockRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -981,6 +1029,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof _testFeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__test/name-gif': {
+      id: '/__test/name-gif'
+      path: '/__test/name-gif'
+      fullPath: '/__test/name-gif'
+      preLoaderRoute: typeof Char91__testChar93NameGifRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__test/videomedia': {
@@ -1058,6 +1113,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/admin-reset-chat'
       fullPath: '/api/public/admin-reset-chat'
       preLoaderRoute: typeof ApiPublicAdminResetChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/admin-review-post': {
+      id: '/api/public/admin-review-post'
+      path: '/api/public/admin-review-post'
+      fullPath: '/api/public/admin-review-post'
+      preLoaderRoute: typeof ApiPublicAdminReviewPostRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/audit-readonly': {
@@ -1219,6 +1281,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRouteWithChildren,
   QaExploreRoute: QaExploreRoute,
   QaSeverLockRoute: QaSeverLockRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuggestedRoute: SuggestedRoute,
   VerifyRoute: VerifyRoute,
@@ -1227,6 +1290,7 @@ const rootRouteChildren: RootRouteChildren = {
   _testBottomNavRoute: _testBottomNavRoute,
   _testDockRoute: _testDockRoute,
   _testFeedRoute: _testFeedRoute,
+  Char91__testChar93NameGifRoute: Char91__testChar93NameGifRoute,
   _testVideomediaRoute: _testVideomediaRoute,
   AccountUserIdRoute: AccountUserIdRoute,
   PostPostIdRoute: PostPostIdRoute,
@@ -1236,6 +1300,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletWithdrawRoute: WalletWithdrawRoute,
   WalletIndexRoute: WalletIndexRoute,
   ApiPublicAdminResetChatRoute: ApiPublicAdminResetChatRoute,
+  ApiPublicAdminReviewPostRoute: ApiPublicAdminReviewPostRoute,
   ApiPublicAuditReadonlyRoute: ApiPublicAuditReadonlyRoute,
   ApiPublicAutoApproveCronRoute: ApiPublicAutoApproveCronRoute,
   ApiPublicClientIpRoute: ApiPublicClientIpRoute,

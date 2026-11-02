@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { RestrictionPanel } from "./RestrictionPanel";
 import { AntiClonePanel, SharedIpDialog } from "./intel/AntiClonePanel";
+import { RegionSummaryPanel } from "./RegionSummaryPanel";
 import { BulkAccountCreator } from "@/components/admin-v3/second-accounts/BulkAccountCreator";
 import { restrictionsService } from "@/services/restrictions.service";
 import { isMissingRpc, isUuidTextMismatch, listMembersFallback } from "@/lib/admin-members-fallback";
@@ -108,7 +109,7 @@ const POST_FILTERS: [PostFilter, string][] = [
 const PAGE_SIZE = 50;
 
 export function MembersManager() {
-  const [tab, setTab] = useState<"list" | "intel">("list");
+  const [tab, setTab] = useState<"list" | "intel" | "region">("list");
   const [rows, setRows] = useState<MemberEx[]>([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
@@ -504,6 +505,26 @@ export function MembersManager() {
     setSelected(new Set()); void load();
   };
 
+  if (tab === "region") {
+    return (
+      <div className="admv3-page">
+        <div className="admv3-page-head">
+          <div>
+            <h2 className="admv3-page-title">Quản lý thành viên</h2>
+            <p className="admv3-page-sub">Số người dùng thật theo khu vực đăng ký, xếp hạng từ cao xuống thấp.</p>
+          </div>
+        </div>
+        <div className="admv3-filters" style={{ marginBottom: 12 }}>
+          <button className="admv3-chip" onClick={() => setTab("list")}>Danh sách</button>
+          <button className="admv3-chip" onClick={() => setTab("intel")}>Anti Clone / Spam</button>
+          <button className="admv3-chip is-active">Tổng hợp khu vực</button>
+        </div>
+        <RegionSummaryPanel />
+        <MembersManagerStyles />
+      </div>
+    );
+  }
+
   if (tab === "intel") {
     return (
       <div className="admv3-page">
@@ -516,6 +537,7 @@ export function MembersManager() {
         <div className="admv3-filters" style={{ marginBottom: 12 }}>
           <button className="admv3-chip" onClick={() => setTab("list")}>Danh sách</button>
           <button className="admv3-chip is-active">Anti Clone / Spam</button>
+          <button className="admv3-chip" onClick={() => setTab("region")}>Tổng hợp khu vực</button>
         </div>
         <AntiClonePanel />
         <MembersManagerStyles />
@@ -535,6 +557,7 @@ export function MembersManager() {
       <div className="admv3-filters" style={{ marginBottom: 10 }}>
         <button className="admv3-chip is-active">Danh sách</button>
         <button className="admv3-chip" onClick={() => setTab("intel")}>Anti Clone / Spam</button>
+        <button className="admv3-chip" onClick={() => setTab("region")}>Tổng hợp khu vực</button>
       </div>
 
       <div className="admv3-toolbar">

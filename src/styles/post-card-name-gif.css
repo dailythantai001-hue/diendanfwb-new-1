@@ -1,0 +1,97 @@
+/* Khung pastel tinh tế cho bài đăng có GIF sau tên tác giả (UI-only).
+   Chỉ áp dụng cho article.pc-card[data-name-gif="true"]; bài thường / ẩn danh không đổi.
+   Ưu tiên: dễ đọc → không che nội dung → không vỡ bố cục → đẹp. */
+:root {
+  --ngif-cream: 40 60% 98%;
+  --ngif-lavender: 262 70% 96%;
+  --ngif-blush: 335 70% 96%;
+  --ngif-line: 265 45% 82%;
+  --ngif-ink: 255 35% 18%;
+  --ngif-ink-soft: 255 15% 40%;
+  --ngif-accent: 265 45% 48%;
+  --ngif-champagne: 42 70% 88%;
+  --ngif-champagne-line: 40 50% 72%;
+}
+
+.pc-post-block article.pc-card[data-name-gif="true"] {
+  position: relative !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden;
+  border-radius: 16px !important;
+  border: 1px solid hsl(var(--ngif-line)) !important;
+  background: linear-gradient(160deg,
+      hsl(var(--ngif-lavender)) 0%,
+      hsl(var(--ngif-cream)) 50%,
+      hsl(var(--ngif-blush)) 100%) !important;
+  box-shadow: 0 2px 10px -6px hsl(var(--ngif-accent) / 0.25) !important;
+  animation: none !important;
+}
+
+/* Tắt mọi lớp trang trí có thể đè nội dung */
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-card__led,
+.pc-post-block article.pc-card[data-name-gif="true"]::before,
+.pc-post-block article.pc-card[data-name-gif="true"]::after {
+  display: none !important;
+}
+
+/* Chữ */
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-meta-name {
+  color: hsl(var(--ngif-ink)) !important;
+  font-weight: 700 !important;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-copy,
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-body,
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-copy * {
+  color: hsl(var(--ngif-ink)) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+}
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-copy,
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-body {
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-meta-time,
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-meta-edited {
+  color: hsl(var(--ngif-ink-soft)) !important;
+}
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-more-btn,
+.pc-post-block article.pc-card[data-name-gif="true"] button.pc-more-btn {
+  color: hsl(var(--ngif-accent)) !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+/* Hàng tên: cho phép xuống dòng thay vì đè */
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-meta,
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-meta-title-row,
+.pc-post-block article.pc-card[data-name-gif="true"] .pc-meta-sub {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+/* Nhãn VIP — nhỏ gọn, trong luồng (hàng phụ dưới tên), không absolute */
+.pc-vip-tag {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 18px;
+  color: hsl(var(--ngif-ink));
+  background: hsl(var(--ngif-champagne));
+  border: 1px solid hsl(var(--ngif-champagne-line));
+  white-space: nowrap;
+  flex-shrink: 0;
+  pointer-events: none;
+}

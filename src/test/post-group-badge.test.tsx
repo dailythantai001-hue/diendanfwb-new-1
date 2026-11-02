@@ -39,7 +39,7 @@ describe("post group badge and popup", () => {
     mocks.read.mockResolvedValue({ data: list.map(g => ({ account_id: "owner", group_kind: g.kind, group_id: g.id })), error: null });
     mocks.catalogue.mockResolvedValue(list);
     mount();
-    const button = await screen.findByRole("button", { name: `Nhóm: ${n}` });
+    const button = await screen.findByRole("button", { name: `Xem Box: ${n}` });
     expect(button.querySelector(".pc-group-count")?.textContent).toBe(String(n));
     fireEvent.click(button);
     const dialog = screen.getByRole("dialog", { name: "Nhóm của Chủ bài" });
@@ -56,7 +56,7 @@ describe("post group badge and popup", () => {
     ], error: null });
     mocks.catalogue.mockResolvedValue([...groups(1), { ...groups(1)[0], kind: "zalo" }]);
     mount();
-    fireEvent.click(await screen.findByRole("button", { name: "Nhóm: 2" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Xem Box: 2" }));
     expect(screen.getByRole("dialog").querySelectorAll(".pgp-row")).toHaveLength(2);
   });
   it("batches different owners and reuses one query for repeated posts", async () => {
@@ -67,8 +67,8 @@ describe("post group badge and popup", () => {
       return <PostCardProvider value={value}><ReactionBar /></PostCardProvider>;
     }
     mount(<><Owner id="owner" /><Owner id="owner" /><Owner id="other" /></>);
-    await waitFor(() => expect(screen.getAllByRole("button", { name: "Nhóm: 0" })).toHaveLength(2));
-    expect(screen.getByRole("button", { name: "Nhóm: 1" })).toBeTruthy();
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "Xem Box: 0" })).toHaveLength(2));
+    expect(screen.getByRole("button", { name: "Xem Box: 1" })).toBeTruthy();
     expect(mocks.read).toHaveBeenCalledTimes(1);
     expect(new Set(mocks.read.mock.calls[0][1])).toEqual(new Set(["owner", "other"]));
   });
@@ -77,20 +77,20 @@ describe("post group badge and popup", () => {
     mocks.read.mockImplementationOnce(() => new Promise((_, reject) => { rejectRequest = reject; }));
     mount();
     await waitFor(() => expect(mocks.read).toHaveBeenCalledOnce());
-    expect(screen.queryByRole("button", { name: "Nhóm: 0" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Nhóm" }));
+    expect(screen.queryByRole("button", { name: "Xem Box: 0" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Xem Box" }));
     expect(screen.getByText("Đang tải nhóm…")).toBeTruthy();
     rejectRequest?.(new Error("network unavailable"));
     expect(await screen.findByRole("alert")).toHaveTextContent("Không thể tải nhóm.");
     expect(screen.queryByText("Thành viên này chưa tham gia nhóm nào.")).toBeNull();
     mocks.read.mockResolvedValue({ data: [], error: null });
     fireEvent.click(screen.getByRole("button", { name: "Thử lại" }));
-    expect(await screen.findByRole("button", { name: "Nhóm: 0" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Xem Box: 0" })).toBeTruthy();
   });
   it("reuses supplied profile list without any extra read", async () => {
     mocks.context.profileGroupsPopup = { groups: [...groups(1), ...groups(1)], loading: false, displayName: "Hồ sơ" };
     mount();
-    fireEvent.click(screen.getByRole("button", { name: "Nhóm: 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xem Box: 1" }));
     expect(screen.getByRole("dialog").querySelectorAll(".pgp-row")).toHaveLength(1);
     expect(mocks.read).not.toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("post group badge and popup", () => {
     mocks.context.isAnonymous = true;
     mocks.context.profileGroupsPopup = { groups: groups(5), loading: false, displayName: "Private" };
     mount();
-    fireEvent.click(screen.getByRole("button", { name: "Nhóm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xem Box" }));
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.querySelector(".pc-group-count")).toBeNull();
     expect(mocks.read).not.toHaveBeenCalled();

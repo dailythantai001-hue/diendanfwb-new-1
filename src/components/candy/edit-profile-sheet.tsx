@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  AlignLeft,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -19,13 +18,12 @@ import { isReservedDisplayName, RESERVED_DISPLAY_NAME_MESSAGE } from "@/lib/rese
 import { invalidateProfile, patchProfileCache, emitProfileUpdated } from "@/lib/profile-cache";
 import { resolveUserName } from "@/lib/user-name";
 
-const BIO_LIMIT = 200;
 const NAME_MIN = 2;
 const NAME_MAX = 16;
 const NAME_WINDOW_MS = 60 * 24 * 60 * 60 * 1000;
 const NAME_LIMIT = 2;
 
-type Editor = "name" | "bio" | null;
+type Editor = "name" | null;
 
 interface EditProfileSheetProps {
   open: boolean;
@@ -43,16 +41,13 @@ export function EditProfileSheet({
   onChangePassword,
 }: EditProfileSheetProps) {
   const initialName = resolveUserName(profile as any, "");
-  const initialBio = (profile.bio || "").slice(0, BIO_LIMIT);
   const [fullName, setFullName] = useState(initialName);
-  const [bio, setBio] = useState(initialBio);
   const [editor, setEditor] = useState<Editor>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setFullName(resolveUserName(profile as any, ""));
-    setBio((profile.bio || "").slice(0, BIO_LIMIT));
     setEditor(null);
   }, [open, profile]);
 
@@ -65,7 +60,6 @@ export function EditProfileSheet({
     if (busyRef.current) return;
     if (editor) {
       setFullName(resolveUserName(profile as any, ""));
-      setBio((profile.bio || "").slice(0, BIO_LIMIT));
       setEditor(null);
       return;
     }
@@ -159,50 +153,7 @@ export function EditProfileSheet({
     }
   };
 
-  const handleSaveBio = async () => {
-    if (saving) return;
-    const newBio = bio.trim();
-    const currentBio = (profile.bio || "").trim();
-    if (newBio === currentBio) {
-      setEditor(null);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const payload = { bio: newBio };
-      const { error } = await supabase
-        .from("profiles")
-        .update(payload as any)
-        .eq("id", profile.id);
-      if (error) {
-        invalidateProfile(profile.id);
-        console.error("[EditProfileSheet] bio update error", error);
-        toast.error(getFriendlyError(error, "Thao tác không thành công. Vui lòng thử lại."));
-        return;
-      }
-
-      syncProfile(payload);
-      if (newBio) {
-        void logActivity({
-          userId: profile.id,
-          actionType: "status_update",
-          description: `Bạn đã cập nhật trạng thái mới: “${newBio.slice(0, 80)}”.`,
-          metadata: { preview: newBio.slice(0, 120) },
-        });
-      }
-      toast.success("Đã cập nhật tiểu sử.");
-      setEditor(null);
-    } catch (error) {
-      console.error("[EditProfileSheet] bio save error", error);
-      toast.error(getFriendlyError(error, "Thao tác không thành công. Vui lòng thử lại."));
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const editingName = editor === "name";
-  const editingBio = editor === "bio";
 
   return (
     <Sheet
@@ -229,7 +180,7 @@ export function EditProfileSheet({
               Quay lại
             </Button>
             <h2 className="absolute left-1/2 -translate-x-1/2 text-[15px] font-bold text-foreground">
-              {editingName ? "Tên hiển thị" : editingBio ? "Tiểu sử" : "Chỉnh sửa trang cá nhân"}
+              {editingName ? "Tên hiển thị" : "Chỉnh sửa trang cá nhân"}
             </h2>
             <div className="h-9 w-[78px]" aria-hidden="true" />
           </div>
@@ -267,27 +218,6 @@ export function EditProfileSheet({
                   </span>
                   <ChevronRight size={18} className="shrink-0 text-muted-foreground/70" />
                 </Button>
-
-                <div className="mx-4 h-px bg-border/55" />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditor("bio")}
-                  className="h-auto min-h-20 w-full justify-start whitespace-normal rounded-none border-0 bg-card px-4 py-4 text-left shadow-none transition hover:bg-accent/40 active:bg-accent/60"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <AlignLeft size={18} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[12px] font-semibold text-muted-foreground">
-                      Tiểu sử
-                    </span>
-                    <span className="mt-0.5 block line-clamp-2 text-[14px] font-medium leading-relaxed text-foreground">
-                      {bio || "Chưa có tiểu sử"}
-                    </span>
-                  </span>
-                  <ChevronRight size={18} className="shrink-0 text-muted-foreground/70" />
-                </Button>
               </div>
               {onChangePassword ? (
                 <Button
@@ -306,91 +236,52 @@ export function EditProfileSheet({
             <section className="animate-in fade-in slide-in-from-right-2 duration-200">
               <div className="mb-5 px-1">
                 <h3 className="text-[18px] font-bold text-foreground">
-                  {editingName ? "Chỉnh sửa tên hiển thị" : "Chỉnh sửa tiểu sử"}
+                  Chỉnh sửa tên hiển thị
                 </h3>
                 <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-                  {editingName
-                    ? `Tên dài từ ${NAME_MIN}–${NAME_MAX} ký tự và được đổi ${NAME_LIMIT} lần trong 60 ngày.`
-                    : "Viết ngắn gọn về bạn để mọi người dễ dàng làm quen."}
+                  Tên dài từ {NAME_MIN}–{NAME_MAX} ký tự và được đổi {NAME_LIMIT} lần trong 60 ngày.
                 </p>
               </div>
 
               <div className="rounded-2xl bg-card p-4 shadow-[0_8px_28px_-20px_var(--color-foreground)] ring-1 ring-border/50">
-                {editingName ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label
-                        htmlFor="edit-profile-name"
-                        className="text-[12px] font-semibold text-foreground"
-                      >
-                        Tên hiển thị
-                      </label>
-                      <span className="text-[11px] tabular-nums text-muted-foreground">
-                        {fullName.length}/{NAME_MAX}
-                      </span>
-                    </div>
-                    <input
-                      id="edit-profile-name"
-                      autoFocus
-                      value={fullName}
-                      onChange={(event) => setFullName(event.target.value.slice(0, NAME_MAX))}
-                      maxLength={NAME_MAX}
-                      placeholder="Tên hiển thị"
-                      enterKeyHint="done"
-                      onFocus={(event) =>
-                        window.setTimeout(
-                          () =>
-                            event.currentTarget.scrollIntoView({
-                              block: "center",
-                              behavior: "smooth",
-                            }),
-                          180,
-                        )
-                      }
-                      className="h-12 w-full rounded-xl border border-input bg-background px-3.5 text-[16px] font-medium text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
-                    />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="edit-profile-name"
+                      className="text-[12px] font-semibold text-foreground"
+                    >
+                      Tên hiển thị
+                    </label>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {fullName.length}/{NAME_MAX}
+                    </span>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label
-                        htmlFor="edit-profile-bio"
-                        className="text-[12px] font-semibold text-foreground"
-                      >
-                        Tiểu sử
-                      </label>
-                      <span className="text-[11px] tabular-nums text-muted-foreground">
-                        {bio.length}/{BIO_LIMIT}
-                      </span>
-                    </div>
-                    <textarea
-                      id="edit-profile-bio"
-                      autoFocus
-                      rows={5}
-                      value={bio}
-                      onChange={(event) => setBio(event.target.value.slice(0, BIO_LIMIT))}
-                      maxLength={BIO_LIMIT}
-                      placeholder="Viết vài dòng giới thiệu về bản thân..."
-                      enterKeyHint="done"
-                      onFocus={(event) =>
-                        window.setTimeout(
-                          () =>
-                            event.currentTarget.scrollIntoView({
-                              block: "center",
-                              behavior: "smooth",
-                            }),
-                          180,
-                        )
-                      }
-                      className="w-full resize-none rounded-xl border border-input bg-background px-3.5 py-3 text-[16px] leading-relaxed text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
-                    />
-                  </div>
-                )}
+                  <input
+                    id="edit-profile-name"
+                    autoFocus
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value.slice(0, NAME_MAX))}
+                    maxLength={NAME_MAX}
+                    placeholder="Tên hiển thị"
+                    enterKeyHint="done"
+                    onFocus={(event) =>
+                      window.setTimeout(
+                        () =>
+                          event.currentTarget.scrollIntoView({
+                            block: "center",
+                            behavior: "smooth",
+                          }),
+                        180,
+                      )
+                    }
+                    className="h-12 w-full rounded-xl border border-input bg-background px-3.5 text-[16px] font-medium text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+                  />
+                </div>
               </div>
 
               <Button
                 type="button"
-                onClick={() => void (editingName ? handleSaveName() : handleSaveBio())}
+                onClick={() => void handleSaveName()}
                 disabled={saving}
                 className="mt-5 h-12 w-full rounded-xl text-[14px] font-bold shadow-sm shadow-primary/15 active:scale-[0.99]"
               >
@@ -399,7 +290,7 @@ export function EditProfileSheet({
                 ) : (
                   <Check size={16} strokeWidth={2.75} />
                 )}
-                {saving ? "Đang lưu" : editingName ? "Lưu tên hiển thị" : "Lưu tiểu sử"}
+                {saving ? "Đang lưu" : "Lưu tên hiển thị"}
               </Button>
             </section>
           )}

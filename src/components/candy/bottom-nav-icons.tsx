@@ -35,12 +35,36 @@ export function HomeNavIcon(props: NavIconProps) {
   );
 }
 
-/** Flat flame icon for the HOT tab — same stroke style as the other nav icons. */
-export function HotNavIcon(props: NavIconProps) {
+/** Magnifier icon for the Tìm kiếm tab — same stroke style as the other nav icons. */
+/** 3D magnifier for "Tìm Bạn": static gradients (no filters) so it stays light on phones. */
+export function SearchNavIcon({ active }: NavIconProps) {
   return (
-    <IconFrame {...props} className="dock-hot-icon">
-      <path d="M12 3c2.9 3.1 5 5.7 5 9a5 5 0 0 1-10 0c0-1.9.8-3.5 2-4.9.3 1.3 1.1 2.2 2.2 2.6C10.6 7.6 11 5.2 12 3Z" />
-    </IconFrame>
+    <span className={`search3d${active ? " search3d--active" : ""}`} aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="30" height="30" className="search3d__svg">
+        <defs>
+          <linearGradient id="s3d-rim" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="var(--search3d-rim-light)" />
+            <stop offset="1" stopColor="var(--search3d-rim-dark)" />
+          </linearGradient>
+          <radialGradient id="s3d-glass" cx="0.35" cy="0.3" r="0.8">
+            <stop offset="0" stopColor="var(--search3d-glass-light)" />
+            <stop offset="1" stopColor="var(--search3d-glass-dark)" />
+          </radialGradient>
+          <linearGradient id="s3d-handle" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="var(--search3d-handle-light)" />
+            <stop offset="1" stopColor="var(--search3d-handle-dark)" />
+          </linearGradient>
+        </defs>
+        <ellipse cx="15" cy="29" rx="9" ry="1.6" fill="var(--search3d-shadow)" />
+        <path d="M19.6 19.4 27 26.8a2.2 2.2 0 0 1-3.1 3.1l-7.4-7.4Z" fill="var(--search3d-handle-dark)" transform="translate(0.6 0.8)" />
+        <path d="M19.6 19.4 27 26.8a2.2 2.2 0 0 1-3.1 3.1l-7.4-7.4Z" fill="url(#s3d-handle)" />
+        <circle cx="13.4" cy="14" r="10" fill="var(--search3d-rim-dark)" />
+        <circle cx="13" cy="13.2" r="10" fill="url(#s3d-rim)" />
+        <circle cx="13" cy="13.2" r="7.2" fill="url(#s3d-glass)" />
+        <path d="M8.6 11.2a5 5 0 0 1 4-4" stroke="var(--search3d-shine)" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      </svg>
+      <span className="search3d__sheen" />
+    </span>
   );
 }
 

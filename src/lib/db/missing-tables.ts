@@ -52,6 +52,13 @@ const SEED_MISSING = [
 
 const STORAGE_KEY = "candy.db.missingTables.v1";
 
+/**
+ * Bảng KHÔNG BAO GIỜ được chặn: request luôn tới thẳng Supabase để lấy kết quả/lỗi thật.
+ * nearby_filters: nếu từng 404 (trước khi chạy SQL) thì bộ chặn sẽ trả "null" giả cho lệnh lưu,
+ * khiến nút LƯU CÀI ĐẶT luôn báo lỗi dù bảng đã tồn tại.
+ */
+const NEVER_GUARD = new Set(["nearby_filters"]);
+
 const missing = new Map<string, Set<string>>();
 
 function setFor(instance: string): Set<string> {
@@ -90,9 +97,11 @@ function hydrate() {
 }
 hydrate();
 
-export const isTableMissing = (instance: string, table: string) => setFor(instance).has(table);
+export const isTableMissing = (instance: string, table: string) =>
+  !NEVER_GUARD.has(table) && setFor(instance).has(table);
 
 export function markTableMissing(instance: string, table: string) {
+  if (NEVER_GUARD.has(table)) return;
   const s = setFor(instance);
   if (s.has(table)) return;
   s.add(table);

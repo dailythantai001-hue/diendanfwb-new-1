@@ -1,0 +1,95 @@
+{
+  "engine": "PostgreSQL 16.15 on x86_64-pc-linux-gnu, compiled by clang version 21.1.8, 64-bit",
+  "database": "disposable local cluster /tmp/v5-pg (socket only)",
+  "results": [
+    {
+      "test": "Before claiming, nobody can scan; install grants nothing silently",
+      "result": "PASS",
+      "detail": {
+        "before_claim": "no scan possible",
+        "install_creates_no_gift": true
+      }
+    },
+    {
+      "test": "Gift granted exactly once; old scans do not count against the new 20",
+      "result": "PASS",
+      "detail": {
+        "old_12_user": 20,
+        "old_30_user": 20,
+        "second_claim": "granted_now=false"
+      }
+    },
+    {
+      "test": "60 simultaneous claims (reload / other devices) -> granted_now true only once",
+      "result": "PASS",
+      "detail": {
+        "parallel_claims": 60,
+        "granted_now_true": 1
+      }
+    },
+    {
+      "test": "Accounts scanned before v5 never come back and cost nothing",
+      "result": "PASS",
+      "detail": {
+        "old_candidate": "skipped, free"
+      }
+    },
+    {
+      "test": "Exactly 20 scans, then locked with the agreed message; re-claim gives nothing",
+      "result": "PASS",
+      "detail": {
+        "attempts": 25,
+        "counted": 20,
+        "reclaim_after_exhaust": "refused"
+      }
+    },
+    {
+      "test": "Concurrent scans never go negative or above 20",
+      "result": "PASS",
+      "detail": {
+        "5_users_x_40": "each 20",
+        "same_user_90_parallel": 20,
+        "same_candidate_30x": 1
+      }
+    },
+    {
+      "test": "No Admin/RPC/table path can grant, reset or restore scans",
+      "result": "PASS",
+      "detail": {
+        "admin_action": "absent",
+        "reset_update_delete": "rejected",
+        "after_history_cleared": "still 0"
+      }
+    },
+    {
+      "test": "Error mid-scan rolls back everything",
+      "result": "PASS",
+      "detail": {
+        "rolled_back": true
+      }
+    },
+    {
+      "test": "Emergency pause/resume never grants or restores scans",
+      "result": "PASS",
+      "detail": {
+        "pause_resume_idempotent": true
+      }
+    },
+    {
+      "test": "Install refuses to run twice or over v4/v2/v3",
+      "result": "PASS",
+      "detail": {
+        "reapply_refused": true,
+        "refused_over_v4": true
+      }
+    },
+    {
+      "test": "Old history and daily data unchanged",
+      "result": "PASS",
+      "detail": {
+        "old_rows_hash_unchanged": true,
+        "null_rows": 5
+      }
+    }
+  ]
+}

@@ -210,7 +210,6 @@ export function BaitGroupsList({
           province={province}
           onClose={() => setInfoGroup(null)}
           onJoin={() => {
-            setInfoGroup(null);
             setLockOpen(true);
           }}
         />

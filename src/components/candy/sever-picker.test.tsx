@@ -1,0 +1,22 @@
+import { it, expect, vi } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+vi.mock("./sever-transition-overlay", () => ({ SeverTransitionOverlay: ({onClose}: {onClose:()=>void}) => <button onClick={onClose}>Finish transition</button> }));
+vi.mock("./sever-flow-modal", () => ({ SeverFlowModal: ({children}: {children:(target:HTMLElement)=>React.ReactNode}) => children(document.body) }));
+vi.mock("./vip-zalo-screen", () => ({ VipZaloScreen: ({open,onClose}: {open:boolean;onClose:()=>void}) => open ? <div role="dialog" aria-label="VIP ZALO"><button onClick={onClose}>TRỞ LẠI</button></div> : null }));
+import { SeverPicker } from "./sever-picker";
+it("regional restrictions retain mixed selection and Back does not switch or reload the feed", () => {
+  const change=vi.fn(); window.addEventListener("feed:sever-change",change);
+  render(<SeverPicker />);
+  fireEvent.click(screen.getByRole("button", {name:/Sever Hỗn Tạp/}));
+  const country=screen.getAllByRole("button").find(b=>b.textContent?.includes("Việt Nam"));
+  if (!country) throw new Error("Vietnam selection missing");
+  fireEvent.click(country);
+  fireEvent.click(screen.getByRole("button",{name:/An Giang/}));
+  fireEvent.click(screen.getByRole("button",{name:"Finish transition"}));
+  expect(screen.getByRole("dialog",{name:"VIP ZALO"})).toBeTruthy();
+  fireEvent.click(screen.getByRole("button",{name:"TRỞ LẠI"}));
+  expect(screen.queryByRole("dialog",{name:"VIP ZALO"})).toBeNull();
+  expect(screen.getByRole("button",{name:/Sever Hỗn Tạp/})).not.toBeDisabled();
+  expect(change).not.toHaveBeenCalled();
+  window.removeEventListener("feed:sever-change",change); cleanup();
+});

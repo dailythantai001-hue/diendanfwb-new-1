@@ -1,0 +1,53 @@
+/* "Tìm bạn mới" — pass hiệu ứng camera lia/zoom khi quét + thẻ "không hợp" tự ẩn.
+   Chỉ là hiệu ứng giao diện (transform), không dùng camera thật. Import sau search-page-scan-cards.css. */
+
+/* ---------- Khóa trọng tâm: làm mờ các thẻ khác khi đang quét ---------- */
+.pk-list > .pk-card { transition: opacity .6s ease, filter .6s ease; }
+.pk-list.is-focus > .pk-card:not(.pk-card--scan) { opacity: .38; filter: blur(1.2px) saturate(.7); }
+
+/* ---------- Camera lia vào rồi zoom chậm, đều trong 10 giây ---------- */
+.pk-card--scan.pk-cam {
+  position: relative; z-index: 1; overflow: visible;
+  transform-origin: 50% 50%; will-change: transform;
+  animation: pk-cam-push 10s cubic-bezier(.25,.1,.25,1) forwards;
+  box-shadow: 0 10px 30px hsl(var(--pk) / .22), 0 0 0 3px hsl(var(--pk) / .12);
+}
+@keyframes pk-cam-push {
+  0%   { transform: translateX(-10px) scale(.965); }
+  14%  { transform: translateX(2px) scale(1.005); }
+  22%  { transform: translateX(0) scale(1.01); }
+  100% { transform: translateX(0) scale(1.035); }
+}
+
+/* Khung ngắm 4 góc bám sát vùng quét */
+.pk-cam-frame { position: absolute; inset: -7px; pointer-events: none; animation: pk-cam-frame 1.6s ease-in-out infinite; }
+.pk-cam-frame i { position: absolute; width: 18px; height: 18px; border: 2.5px solid hsl(var(--pk)); }
+.pk-cam-frame i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
+.pk-cam-frame i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 8px; }
+.pk-cam-frame i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 8px; }
+.pk-cam-frame i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
+@keyframes pk-cam-frame { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+/* Vòng quét: sóng lan đều quanh radar */
+.pk-cam .pk-scan-ic { position: relative; }
+.pk-cam .pk-scan-ic::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid hsl(var(--pk) / .55); animation: pk-cam-ring 1.8s ease-out infinite;
+}
+@keyframes pk-cam-ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.6); opacity: 0; } }
+
+/* Thanh tiến trình: cập nhật mỗi khung hình nên không cần transition (tránh giật) */
+.pk-cam .pk-progress__fill { transition: none; }
+
+/* ---------- "NGƯỜI NÀY KHÔNG HỢP": mờ dần + thu gọn mượt, không làm nhảy bố cục ---------- */
+.pk-card--fail.is-leaving { overflow: hidden; animation: pk-fail-out .45s cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes pk-fail-out {
+  0%   { opacity: 1; max-height: var(--pk-h, 90px); transform: scale(1); }
+  45%  { opacity: 0; transform: scale(.97); }
+  100% { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; border-width: 0; margin-top: -10px; transform: scale(.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-card--scan.pk-cam, .pk-cam-frame, .pk-cam .pk-scan-ic::after { animation: none; }
+  .pk-card--fail.is-leaving { animation-duration: .01s; }
+}

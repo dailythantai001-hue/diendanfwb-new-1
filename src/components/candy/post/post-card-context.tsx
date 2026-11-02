@@ -17,6 +17,9 @@ export interface PostCardContextValue {
   isAnonymous: boolean;
   isPostOwner: boolean;
   canDelete: boolean;
+  /** Chỉ hiển thị nút; quyền thật được máy chủ kiểm tra. */
+  canAdminDelete: boolean;
+  adminRemovePost: () => Promise<void>;
   authorName: string;
   authorLocation: string;
   postTime: string;

@@ -1,6 +1,6 @@
 import { fetchProfilesByIds } from "@/lib/profile-cache";
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Images, MessageCircle, Send, X, EyeOff, Lock, HeartHandshake, Crown, ImagePlus, Play, Facebook, Gift, Sticker, Mic, Library } from "lucide-react";
+import { Images, MessageCircle, Send, X, EyeOff, Lock, HeartHandshake, Crown, ImagePlus, Facebook, Gift, Mic, Library } from "lucide-react";
 import { FacebookBrandButton, ZaloBrandButton } from "@/components/candy/composer-brand-icons";
 import { canUseContactLinks } from "@/lib/post-contact-access";
 
@@ -1179,8 +1179,20 @@ export function FeedPage({
 
 
   /** Bước 1: kiểm tra điều kiện và (nếu cần) yêu cầu chọn nhu cầu trước khi đăng. */
+  const submitLockRef = useRef(false);
   const handleSubmit = async () => {
     if (!me) return alert("Bạn cần đăng nhập trước.");
+    // Chống bấm đăng nhiều lần → không tạo bài trùng.
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    try {
+      await handleSubmitInner();
+    } finally {
+      submitLockRef.current = false;
+    }
+  };
+  const handleSubmitInner = async () => {
+    if (!me) return;
     if (!postCategory) {
       setMissingCategory(true);
       setShakeSubmit(true);
@@ -1188,21 +1200,6 @@ export function FeedPage({
       return;
     }
     setMissingCategory(false);
-    // Ảnh của thành viên thường: mô phỏng "đã gửi phê duyệt".
-    // Không upload, không tạo bài viết, không ghi database — chỉ trừ 1 lượt đăng.
-    if (!isMeAdmin && postFiles.length > 0) {
-      setPosting(true);
-      await new Promise((r) => window.setTimeout(r, 1200));
-      setPosting(false);
-      bumpUsed();
-      setPostFiles([]);
-      setPendingGifUrl(null);
-      setPendingVoice(null);
-      clearComposerText();
-      setComposerOpen(false);
-      showPostSuccessPopup("Bài viết đã được gửi đi phê duyệt.");
-      return;
-    }
 
     // Gate VIP cho Voice: chỉ kiểm tra tại bước "Đăng bài".
     // Admin + Clone luôn được phép; user thường phải là VIP.
@@ -1222,7 +1219,8 @@ export function FeedPage({
 
 
     if (blocked) {
-      toast.error(blockedMessage, { duration: 6000 });
+      if (!isVipUnlocked) setVoiceLocked(true);
+      else toast.error(blockedMessage, { duration: 6000 });
       return;
     }
 
@@ -1252,7 +1250,17 @@ export function FeedPage({
     await doCreatePost();
   };
 
+  const createLockRef = useRef(false);
   const doCreatePost = async () => {
+    if (createLockRef.current) return;
+    createLockRef.current = true;
+    try {
+      await doCreatePostInner();
+    } finally {
+      createLockRef.current = false;
+    }
+  };
+  const doCreatePostInner = async () => {
     if (!me || !postCategory) return;
 
     // Bot từ cấm: chỉ áp dụng cho user thường, admin được bỏ qua.
@@ -1279,6 +1287,18 @@ export function FeedPage({
       }
     }
 
+    // Thành viên thật (không phải Admin, không phải tài khoản thứ hai/phụ):
+    // video và voice chưa hỗ trợ → chặn trước khi upload hay giữ lượt đăng.
+    const isRealMemberPoster =
+      !isMeAdmin && !isMeClone && (meAny as any)?.account_source !== "internal";
+    if (
+      isRealMemberPoster &&
+      (pendingVoice || postFiles.some((f) => (f.type || "").startsWith("video/") || (f.type || "").startsWith("audio/")))
+    ) {
+      toast.error("Hiện tại bạn chưa thể sử dụng tính năng này.");
+      return;
+    }
+
     // Giữ lượt đăng (3 lượt miễn phí / 5.000 trừ ví) TRƯỚC khi hiện bài tạm.
     let postTicket: import("@/lib/post-quota").PostTicket | null = null;
     try {
@@ -1300,9 +1320,9 @@ export function FeedPage({
 
     // Bài có ảnh của thành viên thường → chờ Admin duyệt.
     // Thành viên VIP (và Admin) → hiển thị ngay.
-    const hasMedia = snapshotFiles.length > 0;
-    const isVipMember = isMeAdmin || Number((me as any)?.vip_level ?? 0) >= 1;
-    const needsApproval = hasMedia && !isVipMember;
+    // Bài của thành viên thật (caption hoặc ảnh) → vào tab Duyệt bài (chờ duyệt).
+    // Admin và tài khoản thứ hai/phụ → hiển thị ngay như trước.
+    const needsApproval = isRealMemberPoster;
     const postStatus: "pending" | "published" = needsApproval ? "pending" : "published";
 
     const localPreviewUrls: string[] = [
@@ -1561,46 +1581,21 @@ export function FeedPage({
       <>
         {activeTab !== "following" ? (
 
-          <div className="composer-trigger-wrap">
+          <div className="composer-trigger-wrap composer-trigger-wrap--minimal">
             <button
               type="button"
-              className="composer-trigger composer-trigger--stacked"
+              className="composer-trigger composer-trigger--minimal"
               onClick={() => setComposerOpen(true)}
               aria-label="Tạo bài viết mới"
             >
-              <span className="composer-trigger__row composer-trigger__row--top">
-                <img loading="lazy" decoding="async"
-                  src={getValidAvatarUrl((meAny as any)?.avatar)}
-                  onError={handleAvatarError}
-                  alt=""
-                  className="composer-trigger__avatar"
-                />
-                <span className="composer-trigger__field">
-                  <span className="composer-trigger__text">Bạn đang nghĩ gì?</span>
-                </span>
-              </span>
-              <span className="composer-trigger__row composer-trigger__row--bottom">
-                <span className="composer-trigger__quick">
-                  <span className="composer-trigger__chip" aria-hidden>
-                    <span className="composer-trigger__ico composer-trigger__ico--photo">
-                      <ImagePlus size={16} />
-                    </span>
-                    <span className="composer-trigger__chip-label">Ảnh</span>
-                  </span>
-                  <span className="composer-trigger__chip" aria-hidden>
-                    <span className="composer-trigger__ico composer-trigger__ico--video">
-                      <Play size={16} />
-                    </span>
-                    <span className="composer-trigger__chip-label">Video</span>
-                  </span>
-                  <span className="composer-trigger__chip" aria-hidden title="GIF / Sticker / File">
-                    <span className="composer-trigger__ico composer-trigger__ico--file">
-                      <Sticker size={16} />
-                    </span>
-                    <span className="composer-trigger__chip-label">File</span>
-                  </span>
-                </span>
-                <span className="composer-trigger__cta">Đăng</span>
+              <img loading="lazy" decoding="async"
+                src={getValidAvatarUrl((meAny as any)?.avatar)}
+                onError={handleAvatarError}
+                alt=""
+                className="composer-trigger__avatar"
+              />
+              <span className="composer-trigger__field">
+                <span className="composer-trigger__text">Bạn đang nghĩ gì?</span>
               </span>
             </button>
           </div>
@@ -1900,9 +1895,12 @@ export function FeedPage({
           </button>
         </div>
         {blocked ? (
-          <p className="composer-hint" style={{ color: "hsl(var(--destructive))", marginTop: 4 }}>
+          <>
+          <p className="composer-hint composer-quota-warning" style={{ color: "hsl(var(--destructive))", marginTop: 4 }}>
             ⛔ {blockedMessage}
           </p>
+          {!isVipUnlocked ? <Button variant="outline" type="button" onClick={() => setVoiceLocked(true)}>Xem quyền lợi VIP</Button> : null}
+          </>
         ) : null}
       </section>
         </BottomSheet>

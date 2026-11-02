@@ -154,12 +154,13 @@ export function ReactionBar() {
         className="pc-action pc-report-action pc-group-action"
         ref={btnRef}
         onClick={handleGroupClick}
-        aria-label={groupCount === null ? "Nhóm" : `Nhóm: ${groupCount}`}
+        aria-label={groupCount === null ? "Xem Box" : `Xem Box: ${groupCount}`}
         aria-busy={popupData?.loading || undefined}
         aria-expanded={popupData ? open : undefined}
-        title="Nhóm"
+        title="Xem Box"
       >
         <span className="pc-action-icon"><Users size={20} aria-hidden="true" /></span>
+        <span className="pc-group-label">Xem Box</span>
         {popupData ? <span className="pc-group-count" aria-hidden="true">
           {popupData.loading ? "…" : popupData.error ? "!" : groupCount}
         </span> : null}

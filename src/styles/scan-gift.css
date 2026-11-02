@@ -1,0 +1,32 @@
+/* One-time scan gift intro (theme tokens are raw HSL triplets: always wrap in hsl()). */
+.sg-intro {
+  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px;
+  background: color-mix(in oklab, hsl(var(--background)) 82%, transparent);
+  backdrop-filter: blur(6px);
+}
+.sg-card {
+  width: min(380px, 100%); text-align: center; padding: 28px 22px 22px; border-radius: 24px;
+  background: hsl(var(--card)); color: hsl(var(--card-foreground));
+  border: 1px solid color-mix(in oklab, hsl(var(--primary)) 35%, transparent);
+  box-shadow: 0 20px 60px -20px color-mix(in oklab, hsl(var(--primary)) 55%, transparent);
+  animation: sg-pop .45s cubic-bezier(.2,1.4,.4,1) both;
+}
+.sg-card.is-done { animation: sg-glow 1.2s ease-in-out infinite alternate; }
+.sg-gift { font-size: 64px; line-height: 1; animation: sg-bounce 1s ease-in-out infinite; }
+.sg-title { margin: 14px 0 8px; font-size: 19px; font-weight: 900; letter-spacing: .02em; color: hsl(var(--primary)); }
+.sg-count { height: 76px; display: grid; place-items: center; }
+.sg-plus {
+  font-size: 56px; font-weight: 900; color: hsl(var(--primary));
+  font-variant-numeric: tabular-nums; animation: sg-plus .3s ease-out both;
+}
+.sg-bar { height: 10px; border-radius: 999px; overflow: hidden; background: hsl(var(--muted)); }
+.sg-bar__fill { height: 100%; background: hsl(var(--primary)); transition: width .12s linear; }
+.sg-sub { margin-top: 12px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+@keyframes sg-pop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes sg-bounce { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
+@keyframes sg-plus { from { transform: translateY(14px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes sg-glow { to { box-shadow: 0 20px 80px -10px color-mix(in oklab, hsl(var(--primary)) 85%, transparent); } }
+@media (prefers-reduced-motion: reduce) {
+  .sg-card, .sg-card.is-done, .sg-gift, .sg-plus { animation: none; }
+  .sg-bar__fill { transition: none; }
+}

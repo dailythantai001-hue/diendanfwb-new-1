@@ -3,7 +3,7 @@ import { useVipUnlockLink } from "@/lib/vip-unlock-link";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  HeartHandshake, MessageCircle, UserMinus, MapPin, Crown, Sparkles, X, Users, ChevronRight,
+  HeartHandshake, MessageCircle, UserMinus, MapPin, Crown, Sparkles, Users, ChevronRight,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/candy/auth-provider";
@@ -11,6 +11,7 @@ import UniversalBadge from "@/components/candy/universal-badge";
 import { loadFwbFakeProfiles, type FakeProfileRecord } from "@/lib/fake-profiles";
 import { unfollowUser } from "@/lib/follow-actions";
 import { FakeMiniProfile } from "@/components/candy/fake-mini-profile";
+import { CommonLockedPopup } from "@/components/candy/common-locked-popup";
 
 import { openExternalLinkWithFeedback } from "@/lib/external-link";
 import { read3 } from "@/lib/content-db";
@@ -101,7 +102,7 @@ export function FwbPage({ onViewProfile, onOpenChat }: FwbPageProps) {
   };
 
   const triggerVipLock = () => {
-    setMiniProfile(null);
+    // Keep the selected profile mounted so Back restores its exact local state.
     setVipLockOpen(true);
   };
 
@@ -269,33 +270,16 @@ export function FwbPage({ onViewProfile, onOpenChat }: FwbPageProps) {
         />
       ) : null}
 
-      {/* POPUP CHẶN VIP */}
-      {vipLockOpen ? (
-        <div className="modal-backdrop" onClick={() => setVipLockOpen(false)}>
-          <div className="modal-panel fwb-vip-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="icon-button fwb-vip-close" onClick={() => setVipLockOpen(false)} aria-label="Đóng">
-              <X size={16} />
-            </button>
-            <div className="fwb-vip-crown">
-              <Crown size={42} />
-            </div>
-            <h3 className="fwb-vip-title">Tính năng VIP {REQUIRED_VIP}+</h3>
-            <p className="fwb-vip-desc">
-              Bạn cần đạt <strong>VIP {REQUIRED_VIP} trở lên</strong> để kết nối!
-            </p>
-            <p className="muted-copy" style={{ textAlign: "center", marginTop: 0 }}>
-              Liên hệ Admin để được hỗ trợ nâng cấp VIP và mở khóa Yêu thích & Nhắn tin với hàng nghìn FWB cùng khu vực.
-            </p>
-            <button
-              className="fwb-gold-btn fwb-gold-btn-cta"
-              onClick={openAdminFb}
-            >
-              <span className="fwb-gold-shine" />
-              <Crown size={16} /> Liên hệ Admin nâng VIP
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <CommonLockedPopup
+        open={vipLockOpen}
+        onClose={() => setVipLockOpen(false)}
+        gate={{
+          title: `Tính năng VIP ${REQUIRED_VIP}+`,
+          message: `Bạn cần đạt VIP ${REQUIRED_VIP} trở lên để kết nối! Liên hệ Admin để được hỗ trợ nâng cấp VIP và mở khóa Yêu thích & Nhắn tin với hàng nghìn FWB cùng khu vực.`,
+          actionLabel: "Liên hệ Admin nâng VIP",
+          onAction: openAdminFb,
+        }}
+      />
     </section>
   );
 }

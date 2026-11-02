@@ -103,10 +103,23 @@ export const SB3_SESSION_MESSAGE =
 export async function requireSb3Session(): Promise<void> {
   const { ensureChatSession } = await import("@/lib/chat-session");
   const { db3 } = await import("@/lib/db/router");
-  const ok = await ensureChatSession();
+  const auth1 = (supabase as any).auth;
+  const { data: s0 } = await auth1.getSession();
+  if (!s0?.session?.user?.id) {
+    throw new PostSlotError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đăng bài.");
+  }
+  let ok = await ensureChatSession();
+  if (!ok) {
+    // Token #1 có thể đã hết hạn → làm mới 1 lần rồi cấp lại phiên #3.
+    const { data: r, error } = await auth1.refreshSession();
+    if (error || !r?.session) {
+      throw new PostSlotError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đăng bài.");
+    }
+    ok = await ensureChatSession();
+  }
   if (!ok) throw new PostSlotError(SB3_SESSION_MESSAGE);
   const [{ data: s1 }, { data: s3 }] = await Promise.all([
-    (supabase as any).auth.getSession(),
+    auth1.getSession(),
     db3().auth.getSession(),
   ]);
   const uid1 = s1?.session?.user?.id;

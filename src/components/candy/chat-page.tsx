@@ -42,6 +42,7 @@ import { usePeerTyping, useSendTyping } from "@/lib/seed-typing";
 import { getMessagePreview, isVoiceMessage } from "@/lib/message-preview";
 import { VoiceBubble } from "@/components/candy/voice-bubble";
 import { VipUnlockModal } from "@/components/candy/vip-unlock-modal";
+import { VipZaloScreen } from "@/components/candy/vip-zalo-screen";
 import { ChatUserInfoToggle } from "@/components/candy/chat-user-info-panel";
 import { parseVoiceMarker } from "@/lib/voice-chat";
 import { hasVipPaymentToken, parseVipPayment, vipPaymentToken } from "@/lib/vip-payment";
@@ -1959,11 +1960,8 @@ export function ChatPage({ view = "messages", targetUserId, onOpenProfile, onCha
           />
         </div>
 
-        <VipUnlockModal
-          open={!!callNotice}
-          variant={callNotice === "video" ? "video" : "voice"}
-          onClose={() => setCallNotice(null)}
-        />
+        {/* Gọi thoại/video (không có điều kiện gate riêng) → màn hình VIP ZALO mới. */}
+        <VipZaloScreen open={!!callNotice} onClose={() => setCallNotice(null)} />
 
 
 
@@ -3192,47 +3190,19 @@ export function ChatPage({ view = "messages", targetUserId, onOpenProfile, onCha
         />
       ) : null}
 
-      {showVipGate ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
-          onClick={() => setShowVipGate(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-3xl bg-card text-card-foreground shadow-2xl border border-border/60 p-6 text-center animate-in fade-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-400/25 to-rose-400/20 text-amber-500">
-              <span style={{ fontSize: 28 }}>👑</span>
-            </div>
-            <h3 className="text-lg font-bold mb-1.5">Tính năng dành cho VIP 5</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-              Tính năng tạo nhóm chỉ dành cho thành viên đạt <b>VIP 5</b> trở lên. Hãy nâng cấp để mở khoá cùng nhiều đặc quyền khác.
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                className="w-full rounded-2xl py-3 text-sm font-semibold text-white shadow bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-500 hover:opacity-95 active:scale-[0.99] transition"
-                onClick={() => {
-                  setShowVipGate(false);
-                  if (typeof window !== "undefined") window.location.href = "/wallet";
-                }}
-              >
-                Nâng cấp VIP
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-2xl py-3 text-sm font-medium text-muted-foreground hover:bg-muted transition"
-                onClick={() => setShowVipGate(false)}
-              >
-                Để sau
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <VipUnlockModal
+        open={showVipGate}
+        onClose={() => setShowVipGate(false)}
+        gate={{
+          title: "Tính năng dành cho VIP 5",
+          message: "Tính năng tạo nhóm chỉ dành cho thành viên đạt VIP 5 trở lên. Hãy nâng cấp để mở khoá cùng nhiều đặc quyền khác.",
+          actionLabel: "Nâng cấp VIP",
+          onAction: () => {
+            setShowVipGate(false);
+            if (typeof window !== "undefined") window.location.href = "/wallet";
+          },
+        }}
+      />
       {toastMsg ? <div className="tg-toast" key={toastMsg + Date.now()}>{toastMsg}</div> : null}
     </section>
   );

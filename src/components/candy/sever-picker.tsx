@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, Check, Search } from "lucide-react";
 import { CountryFlag, type CountryFlagType } from "@/components/candy/country-flag";
 import { SeverTransitionOverlay } from "@/components/candy/sever-transition-overlay";
-import { SeverLockPopup } from "@/components/candy/sever-lock-popup";
+import { VipZaloScreen } from "@/components/candy/vip-zalo-screen";
 import { SeverFlowModal } from "@/components/candy/sever-flow-modal";
 import { SeverReturnOverlay } from "@/components/candy/sever-return-overlay";
 import { SEVERS, regionsOfSever, searchServerRegions, stableOnlineCount, type SeverId } from "@/lib/server-regions";
@@ -72,8 +72,6 @@ export function SeverPicker() {
     if (next.sever !== "mixed") {
       // Khóa toàn bộ Sever khu vực: chỉ chạy loading rồi hiện popup, không chuyển.
       const loc = next.region ?? (SEVERS.find((s) => s.id === next.sever)?.label ?? next.sever);
-      setOpen(false);
-      setBrowsing(null);
       setPendingLock({ sever: next.sever, location: loc });
       setTransition(loc);
       return;
@@ -88,9 +86,9 @@ export function SeverPicker() {
     busyRef.current = false;
   };
 
-  const beginReturn = useCallback(() => {
+  const closeVip = useCallback(() => {
     setLock(null);
-    setReturning(true);
+    busyRef.current = false;
   }, []);
 
   const returnToMixed = useCallback(() => {
@@ -195,11 +193,11 @@ export function SeverPicker() {
             document.body,
           )
         : null}
-      {busy ? <SeverFlowModal>{(portalTarget) => <>
+      {Boolean(transition || returning) ? <SeverFlowModal>{(portalTarget) => <>
         {transition ? <SeverTransitionOverlay region={transition} onClose={closeTransition} portalTarget={portalTarget} /> : null}
-        {lock ? <SeverLockPopup location={lock.location} country={lock.sever as CountryFlagType} onReturnToMixed={beginReturn} portalTarget={portalTarget} /> : null}
         {returning ? <SeverReturnOverlay onComplete={returnToMixed} portalTarget={portalTarget} /> : null}
       </>}</SeverFlowModal> : null}
+      <VipZaloScreen open={Boolean(lock)} onClose={closeVip} />
     </>
   );
 }

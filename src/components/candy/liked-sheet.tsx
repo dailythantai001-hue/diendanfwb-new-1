@@ -1,7 +1,9 @@
 import { useOverlayAutoClose } from "@/lib/modal-manager";
 import { avatarSrc } from "@/lib/image-cdn";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { X, MessageCircle, Crown, Heart, Sparkles, Lock } from "lucide-react";
+import { X, MessageCircle, Heart, Sparkles } from "lucide-react";
+import { VipZaloScreen } from "./vip-zalo-screen";
+import { Button } from "@/components/ui/button";
 import { Portal } from "@/components/candy/portal";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { getFollowSet, getFollowSetServer, subscribeFollow } from "@/lib/follow-store";
@@ -28,6 +30,7 @@ export function LikedSheet({ onClose, onOpenChat, viewerProvince, isVip }: Liked
   useOverlayAutoClose(true, onClose, "liked-sheet");
   useBodyScrollLock(true);
   const [tab, setTab] = useState<Tab>("liked");
+  const [vipOpen, setVipOpen] = useState(false);
   const likedIds = useSyncExternalStore(subscribeFollow, getFollowSet, getFollowSetServer);
   const [pool, setPool] = useState<FakeProfileRecord[]>([]);
 
@@ -81,7 +84,7 @@ export function LikedSheet({ onClose, onOpenChat, viewerProvince, isVip }: Liked
                 role="tab"
                 aria-selected={tab === t.key}
                 className={`fwb-liked-tab${tab === t.key ? " is-active" : ""}`}
-                onClick={() => setTab(t.key)}
+                onClick={() => { if (t.key === "likedYou" && !isVip) { setVipOpen(true); return; } setTab(t.key); }}
               >
                 <span>{t.icon}</span> {t.label}
                 <em>{t.count}</em>
@@ -94,12 +97,13 @@ export function LikedSheet({ onClose, onOpenChat, viewerProvince, isVip }: Liked
             {tab === "likedYou" && (
               isVip
                 ? <LikedGrid items={likedYou} onOpenChat={onOpenChat} viewerProvince={viewerProvince} emptyText="Chưa có ai thích bạn. Hãy cập nhật ảnh đẹp hơn nhé!" />
-                : <VipGate count={likedYou.length} items={likedYou.slice(0, 6)} />
+                : <Button variant="outline" onClick={() => setVipOpen(true)}>Xem quyền lợi VIP</Button>
             )}
             {tab === "matches" && <LikedGrid items={matches} onOpenChat={onOpenChat} viewerProvince={viewerProvince} emptyText="Chưa có cặp đôi nào. Tiếp tục vuốt để ghép đôi 🔥" highlight />}
           </div>
         </div>
       </div>
+      <VipZaloScreen open={vipOpen} onClose={() => setVipOpen(false)} />
     </Portal>
   );
 }
@@ -159,29 +163,3 @@ function LikedGrid({
   );
 }
 
-function VipGate({ count, items }: { count: number; items: FakeProfileRecord[] }) {
-  return (
-    <div className="fwb-liked-vipgate">
-      <div className="fwb-liked-vipgate__previews">
-        {items.map((p) => (
-          <div key={p.id} className="fwb-liked-vipgate__thumb">
-            <img loading="lazy" decoding="async" src={avatarSrc(p.avatar_url || p.avatar || "/placeholder.svg", 64)} alt="" />
-            <span className="fwb-liked-vipgate__lock"><Lock size={14} /></span>
-          </div>
-        ))}
-      </div>
-      <Crown size={36} color="#f0c14b" />
-      <h3>{count} người đã thích bạn</h3>
-      <p>Nâng cấp VIP để xem ai đã thích, nhắn tin trước & xuất hiện ưu tiên trong Discovery.</p>
-      <ul className="fwb-liked-vipgate__perks">
-        <li>👀 Xem ai đã thích bạn</li>
-        <li>♾️ Vuốt không giới hạn</li>
-        <li>🚀 Boost hồ sơ +10× lượt xem</li>
-        <li>🎯 Bộ lọc nâng cao</li>
-      </ul>
-      <button className="fwb-liked-vipgate__cta">
-        <Crown size={16} /> Nâng cấp VIP ngay
-      </button>
-    </div>
-  );
-}

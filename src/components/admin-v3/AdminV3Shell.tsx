@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Images,
   Bell,
   Wallet,
   BarChart3,
@@ -50,6 +49,7 @@ import { PopupManager } from "@/components/admin-v3/notifications/PopupManager";
 import { GifLibraryManager } from "@/components/admin-v3/notifications/GifLibraryManager";
 import { VipIconManager } from "@/components/admin-v3/vip/VipIconManager";
 import { VipPopupManager } from "@/components/admin-v3/vip/VipPopupManager";
+import { VipZaloManager } from "@/components/admin-v3/vip/VipZaloManager";
 import { BaoDepTraiHub } from "@/components/candy/admin-modules/bao-dep-trai-hub";
 import { LogoManager } from "@/components/admin-v3/branding/LogoManager";
 import { SeoManager } from "@/components/admin-v3/branding/SeoManager";
@@ -78,7 +78,6 @@ const StatsDashboard = lazyWithRetry(() => import("@/components/admin-v3/stats/S
 const CrmManager = lazyWithRetry(() => import("@/components/admin-v3/crm/CrmManager").then((m) => ({ default: m.CrmManager })));
 const AdminMasterReviewPanel = lazyWithRetry(() => import("@/components/admin-v1/AdminMasterReviewPanel").then((m) => ({ default: m.AdminMasterReviewPanel })));
 const MembersManager = lazyWithRetry(() => import("@/components/admin-v3/members/MembersManager").then((m) => ({ default: m.MembersManager })));
-const FlashAlbumsManager = lazyWithRetry(() => import("@/components/admin-v3/albums/FlashAlbumsManager").then((m) => ({ default: m.FlashAlbumsManager })));
 const R2ConfigTest = lazyWithRetry(() => import("@/components/candy/admin-modules/r2-config-test").then((m) => ({ default: m.R2ConfigTest })));
 
 
@@ -93,7 +92,6 @@ type SectionKey =
   | "second_accounts"
   | "posts"
   | "guides"
-  | "flash_albums"
   | "community_vip"
   | "messages"
   | "notifications"
@@ -120,7 +118,6 @@ const BASE_NAV: { key: SectionKey; label: string; icon: any; emoji: string }[] =
   { key: "members", label: "Quản lý thành viên", icon: Users, emoji: "👤" },
   { key: "second_accounts", label: "Tài khoản thứ hai", icon: Users, emoji: "🕶️" },
   { key: "posts", label: "Quản lý bài viết", icon: FileText, emoji: "📝" },
-  { key: "flash_albums", label: "ALBUM HOT", icon: Images, emoji: "⚡" },
   { key: "community_vip", label: "Quản lý Cộng Đồng VIP", icon: Users, emoji: "👑" },
   { key: "messages", label: "Quản lý Tin nhắn", icon: Bell, emoji: "💬" },
   { key: "notifications", label: "Thông báo", icon: Bell, emoji: "📢" },
@@ -157,7 +154,7 @@ export function AdminV3Shell({
     if (typeof window !== "undefined") {
       const s = new URLSearchParams(window.location.search).get("section");
       const allowed: SectionKey[] = [
-        "members","second_accounts","posts","flash_albums","community_vip","messages","notifications","gif_library","bait_groups","reports_reward","fish","agents","vip_icons","vip_popup","baodeptrai","stats","site_logo","site_seo","site_links","feedback_zalo","admin_approvals","settings","r2_config_test","emergency",
+        "members","second_accounts","posts","community_vip","messages","notifications","gif_library","bait_groups","reports_reward","fish","agents","vip_icons","vip_popup","baodeptrai","stats","site_logo","site_seo","site_links","feedback_zalo","admin_approvals","settings","r2_config_test","emergency",
       ];
       if (s && (allowed as string[]).includes(s)) return s as SectionKey;
     }
@@ -362,7 +359,6 @@ export function AdminV3Shell({
               {active === "second_accounts" && isSuperAdmin && <SecondAccountsManager />}
 
               {active === "posts" && <PostsSection pendingReports={pendingReports} />}
-              {active === "flash_albums" && (<Suspense fallback={<AdminTabFallback />}><FlashAlbumsManager /></Suspense>)}
               {active === "community_vip" && <CommunityVipManager />}
               {active === "guides" && <GuidesManager />}
               {active === "messages" && <MessageResetManager />}
@@ -373,7 +369,7 @@ export function AdminV3Shell({
               {active === "fish" && (<Suspense fallback={<AdminTabFallback />}><FishManager /></Suspense>)}
               {active === "agents" && <AgentsManager />}
               {active === "vip_icons" && <VipIconManager />}
-              {active === "vip_popup" && <VipPopupManager />}
+              {active === "vip_popup" && (<><VipPopupManager /><VipZaloManager /></>)}
               {active === "baodeptrai" && <BaoDepTraiHub />}
               {active === "stats" && (<Suspense fallback={<AdminTabFallback />}><StatsDashboard /></Suspense>)}
               {active === "site_logo" && <LogoManager />}

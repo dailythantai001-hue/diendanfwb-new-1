@@ -23,6 +23,8 @@ import { guardAction } from "@/lib/rate-limit";
 
 import { read3 } from "@/lib/content-db";
 import { syncToS3, syncLikeRowToS3 } from "@/lib/content-sync";
+import { useAuth } from "@/components/candy/auth-provider";
+import { adminDeletePostFn } from "@/lib/admin-post-delete.functions";
 export interface UsePostCardParams {
   meId?: string;
   post: PostRecord;
@@ -40,6 +42,7 @@ export interface UsePostCardParams {
  */
 export function usePostCardState(params: UsePostCardParams): PostCardContextValue {
   const { meId, post, canDelete = false, onRefresh, onRemoved, onViewProfile, compactMedia } = params;
+  const { isAdmin } = useAuth();
 
   const _cachedLikes = Number((post as any)?.likes_count ?? 0) || 0;
   const _cachedViews = Number((post as any)?.views_count ?? 0) || 0;
@@ -377,6 +380,23 @@ export function usePostCardState(params: UsePostCardParams): PostCardContextValu
     onRefresh();
   };
 
+  /** Admin xóa bài người khác — quyền được máy chủ kiểm tra lại (profiles.is_admin). */
+  const adminRemovePost = async () => {
+    setMenuOpen(false);
+    if (!window.confirm("Xóa bài viết này với quyền quản trị viên? Hành động không thể hoàn tác.")) return;
+    const { data } = await (supabase as any).auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) { toast.error("Vui lòng đăng nhập lại."); return; }
+    const res = await adminDeletePostFn({ data: { token, postId: String(post.id) } });
+    if (!res.ok) { toast.error(res.error); return; }
+    syncToS3("posts", { id: post.id }, "delete");
+    invalidatePostStats(post.id);
+    window.dispatchEvent(new CustomEvent("post:removed", { detail: { postId: post.id } }));
+    onRemoved?.(post.id);
+    onRefresh();
+    toast.success("Đã xóa bài viết.");
+  };
+
   const pinnedActive = useMemo(() => {
     if (!(post as any).is_pinned) return false;
     const until = (post as any).pinned_until;
@@ -460,6 +480,7 @@ export function usePostCardState(params: UsePostCardParams): PostCardContextValu
 
   return {
     post, meId, isAnonymous, isPostOwner, canDelete: !!canDelete,
+    canAdminDelete: isAdmin && !canDelete, adminRemovePost,
     authorName, authorLocation, postTime, hasStory,
     following, followBusy,
     images, compactMedia,

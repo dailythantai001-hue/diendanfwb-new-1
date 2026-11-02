@@ -13,7 +13,7 @@ import {
   type VipUnlockConfig,
   type VipFeatureItem,
 } from "@/lib/vip-unlock-config";
-import { CommonLockedPopup } from "@/components/candy/common-locked-popup";
+import { CommonLockedPopup as LegacyVipPopupPreview } from "@/components/candy/legacy-vip-popup-preview";
 
 const field: React.CSSProperties = {
   width: "100%",
@@ -297,7 +297,7 @@ export function VipPopupManager() {
         </button>
       </div>
 
-      <CommonLockedPopup open={preview} onClose={() => setPreview(false)} />
+      <LegacyVipPopupPreview open={preview} onClose={() => setPreview(false)} />
     </div>
   );
 }

@@ -125,7 +125,7 @@ export function PostContactActions() {
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || vipFeature !== null) return;
     acquirePopup(close);
     const outside = (event: PointerEvent) => {
       if (!trigger.current?.contains(event.target as Node) && !menu.current?.contains(event.target as Node)) close();
@@ -142,7 +142,7 @@ export function PostContactActions() {
       window.removeEventListener("scroll", close, true);
       window.removeEventListener("resize", close);
     };
-  }, [open, close]);
+  }, [open, close, vipFeature]);
 
   return (
     <div className="pc-contact-actions">
@@ -186,7 +186,7 @@ export function PostContactActions() {
             const label = `${key === "instagram" || key === "x" ? "Theo dõi" : "Kết Bạn"} ${def.label}`;
             return <Button key={key} type="button" role="menuitem" variant="ghost"
               className={`pc-contact-menu-item pg-social-btn--${key}`}
-              onClick={() => { close(); setVipFeature(label); }}>
+              onClick={() => { setVipFeature(label); }}>
               <span className={`pc-contact-social-icon pg-social-btn pg-social-btn--${key}`}><SocialGlyph k={key} /></span><span>{label}</span>
             </Button>;
           })}

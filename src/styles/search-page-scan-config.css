@@ -1,0 +1,19 @@
+/* "Tìm bạn mới" — pass: nút bánh răng phát sáng hồng khi chưa lưu đủ cấu hình quét.
+   Import sau search-page-scan-camera.css. */
+.pk-gear.pk-gear--attention {
+  position: relative;
+  color: hsl(0 0% 100%);
+  background: linear-gradient(135deg, hsl(var(--pk-2)), hsl(var(--pk)));
+  border-color: hsl(var(--pk));
+  animation: pk-gear-glow 1.1s ease-in-out infinite;
+}
+.pk-gear.pk-gear--attention svg { animation: pk-gear-turn 2.2s linear infinite; }
+@keyframes pk-gear-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--pk) / .55), 0 0 10px hsl(var(--pk) / .45); }
+  50%      { box-shadow: 0 0 0 8px hsl(var(--pk) / 0), 0 0 22px hsl(var(--pk) / .85); }
+}
+@keyframes pk-gear-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .pk-gear.pk-gear--attention, .pk-gear.pk-gear--attention svg { animation: none; }
+  .pk-gear.pk-gear--attention { box-shadow: 0 0 16px hsl(var(--pk) / .8); }
+}

@@ -137,7 +137,7 @@ export function DisplayNameGate() {
             color: "transparent",
           }}
         >
-          Tên Zalo
+          Tên Hiển Thị
         </div>
 
 
@@ -145,7 +145,7 @@ export function DisplayNameGate() {
           id="dn-gate-title"
           style={{ position: "absolute", left: -9999, width: 1, height: 1, overflow: "hidden" }}
         >
-          Tên Zalo
+          Tên Hiển Thị
         </h2>
 
         <input
@@ -155,7 +155,7 @@ export function DisplayNameGate() {
             setName(e.target.value);
             if (err) setErr(null);
           }}
-          placeholder="Tên Zalo"
+          placeholder="Nhập tên hiển thị"
           maxLength={25}
           disabled={saving}
           style={{
@@ -169,7 +169,7 @@ export function DisplayNameGate() {
           }}
         />
         <div style={{ fontSize: 12.5, color: err ? "#ef4444" : "rgba(0,0,0,0.5)", marginTop: -4 }}>
-          {err ?? "Tên Zalo tối đa 25 ký tự."}
+          {err ?? "Tên hiển thị tối đa 25 ký tự"}
         </div>
 
         <button

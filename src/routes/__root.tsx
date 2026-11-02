@@ -20,7 +20,6 @@ import { BanWatchdog } from "@/components/candy/ban-watchdog";
 import { DevToolsGuard } from "@/components/candy/devtools-guard";
 import { MaintenanceGate } from "@/components/candy/maintenance-gate";
 import { LegacyApp } from "@/legacy-app-mount";
-import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/i18n/context";
 import { LanguageSelector } from "@/components/language-selector";
 
@@ -61,9 +60,9 @@ export const Route = createRootRoute({
         href: "https://fonts.googleapis.com/css2?family=Bungee&family=Russo+One&family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&family=Montserrat:wght@800;900&family=Urbanist:wght@600;700;800;900&family=Epilogue:wght@400;500;600;700&family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/__l5e/assets-v1/7ca16eee-72ed-41c0-9655-91733cf74cc7/icon-32.png" },
-      { rel: "icon", type: "image/png", sizes: "192x192", href: "/__l5e/assets-v1/7ca16eee-72ed-41c0-9655-91733cf74cc7/icon-32.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/__l5e/assets-v1/0aa13843-d411-449c-bd48-e01f6746d778/icon-180.png" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/__l5e/assets-v1/2641c9c6-f932-4da2-af5f-d2f4f11559c9/icon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/__l5e/assets-v1/2641c9c6-f932-4da2-af5f-d2f4f11559c9/icon-32.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/__l5e/assets-v1/129613c8-63cc-408a-abf6-1a3c5c7a96b1/icon-180.png" },
       { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
@@ -99,7 +98,7 @@ function RootComponent() {
 
   // /blocked là route duy nhất người bị Block Level 3 được thấy:
   // không gate phụ, không overlay, không popup, không header/footer.
-  if (pathname === "/blocked" || pathname === "/qa-explore" || pathname === "/__test/feed" || pathname === "/qa-sever-lock")
+  if (pathname === "/blocked" || pathname === "/qa-explore" || pathname === "/__test/feed" || pathname === "/__test/name-gif" || pathname === "/qa-sever-lock")
     return (
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
@@ -121,7 +120,6 @@ function RootComponent() {
             <ExternalLinkGuard />
             <PopupRenderer />
             <PopupEngine />
-            <Toaster />
             {showLanguageSelector ? <LanguageSelector /> : null}
 
             {/* App chính: mount MỘT lần, không unmount khi URL đổi trong SPA. */}

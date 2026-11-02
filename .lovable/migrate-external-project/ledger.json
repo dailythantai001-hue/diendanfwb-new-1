@@ -1,13 +1,12 @@
 {
   "source": "code-archive",
   "capabilities": [
-    {"capability":"code and components","source":"chat-card-style-main.zip","outcome":"import","status":"verified","next_action":"Imported 1395 files with existing TanStack runtime; sign-in screen renders without browser errors."},
-    {"capability":"database schema and records","source":"existing multi-database Supabase router","outcome":"preserve at explicit user request","status":"preserved","next_action":"DB router and configuration byte-identical to source; no SQL, data import or migrations executed. Authenticated reads remain unverified."},
-    {"capability":"auth identities and authorization","source":"existing Supabase auth and guards","outcome":"preserve","status":"pending_verification","next_action":"Verify available sign-in surface; authenticated checks require user's existing session."},
-    {"capability":"QR payment messages","source":"chat-cards and chat renderers","outcome":"fix presentation only","status":"tested","next_action":"Legacy decoder, malformed-token suppression, title, optional bank data, notes and zoom tested. Actual admin-to-user old-DB flow requires existing session."},
-    {"capability":"storage and uploaded file bytes","source":"existing CDN asset pointers and storage providers","outcome":"preserve","status":"pending_verification","next_action":"Retain asset pointers and storage configuration."},
-    {"capability":"public endpoints callbacks webhooks schedules and providers","source":"src/routes/api/public","outcome":"preserve","status":"pending_verification","next_action":"Import unchanged endpoints; inspect required server secrets without exposing values."},
-    {"capability":"secrets and cutover","source":"external production services","outcome":"preserve","status":"pending_verification","next_action":"Existing server secret configuration is not included in ZIP; report live verification limitations."},
-    {"capability":"verification","source":"tests and browser","outcome":"verify","status":"partially_verified","next_action":"23 tests passed; QR card, zoom and Escape close verified in browser with synthetic non-payment QR. No overflow or browser errors. Authenticated external DB flow and secret-backed services remain blocked."}
+    {"capability":"code and components","source":"seamless-project-import-main.zip","outcome":"import","status":"verified","next_action":"All source files copied with unchanged structure; TanStack versions identical to target; sign-in screen renders."},
+    {"capability":"database schema and records","source":"existing multi-instance Supabase router (src/lib/db/config.ts)","outcome":"preserve at explicit user request (reuse old DB)","status":"preserved","next_action":"DB config byte-identical; no migrations or imports run. Authenticated reads unverified without a user session."},
+    {"capability":"auth identities and authorization","source":"existing Supabase auth","outcome":"preserve","status":"pending_verification","next_action":"User signs in with an existing account to confirm."},
+    {"capability":"uploaded file bytes (CDN asset pointers)","source":"assets from previous Lovable projects","outcome":"rehost","status":"verified","next_action":"26 assets downloaded and re-uploaded to this project; all return 200."},
+    {"capability":"public endpoints, crons, providers (R2, Cloudinary, Sheets)","source":"src/routes/api/public","outcome":"preserve","status":"pending_verification","next_action":"Needs server secrets in this project."},
+    {"capability":"secrets","source":"previous project settings","outcome":"preserve","status":"pending","next_action":"Add SB3_SERVICE_ROLE_KEY, SUPABASE1/2/3/4_SERVICE_ROLE_KEY, R2_*, CLOUDINARY_API_SECRET etc. when needed."},
+    {"capability":"verification","source":"tests and browser","outcome":"verify","status":"partially_verified","next_action":"279/280 tests pass (1 pre-existing failure in sim-like-table test, unchanged source). Home renders with no errors."}
   ]
 }

@@ -15,7 +15,7 @@ import {
 } from "@/lib/clone-vip-media";
 import { SocialGlyph } from "@/components/candy/profile-uid-badge";
 import type { SocialKey } from "@/components/candy/social-link-edit-modal";
-import { CommonLockedPopup } from "@/components/candy/common-locked-popup";
+import { VipZaloScreen } from "@/components/candy/vip-zalo-screen";
 import "@/styles/chat-user-info-panel.css";
 
 const EMPTY: string[] = [];
@@ -151,7 +151,7 @@ export function ChatUserInfoToggle({ userId, name, avatar, statusLabel, online }
         </div>
       ) : null}
 
-      <CommonLockedPopup open={vipOpen} onClose={() => setVipOpen(false)} />
+      <VipZaloScreen open={vipOpen} onClose={() => setVipOpen(false)} />
 
       {notice && typeof document !== "undefined"
         ? createPortal(

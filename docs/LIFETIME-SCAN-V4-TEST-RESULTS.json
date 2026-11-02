@@ -1,0 +1,98 @@
+{
+  "engine": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by clang version 21.1.8, 64-bit",
+  "database": "disposable local cluster /tmp/v4-pg (socket only)",
+  "results": [
+    {
+      "test": "Old scans count toward the 20 (incl. 10 without history); new user gets 20",
+      "result": "PASS",
+      "detail": {
+        "user_10_missing_history": {
+          "hits": 7,
+          "mode": "lifetime",
+          "used": 12,
+          "limit": 20,
+          "total": 12,
+          "active": true,
+          "locked": false,
+          "misses": 5,
+          "remaining": 8,
+          "server_now": "2026-11-01T16:40:24.333682+00:00"
+        },
+        "user_5_null": {
+          "hits": 2,
+          "mode": "lifetime",
+          "used": 5,
+          "limit": 20,
+          "total": 5,
+          "active": true,
+          "locked": false,
+          "misses": 3,
+          "remaining": 15,
+          "server_now": "2026-11-01T16:40:24.362511+00:00"
+        },
+        "user_34_old": 0,
+        "new_user": 20
+      }
+    },
+    {
+      "test": "Exactly 20 scans for the account lifetime, then locked",
+      "result": "PASS",
+      "detail": {
+        "attempts": 25,
+        "counted": 20
+      }
+    },
+    {
+      "test": "Concurrent requests: many users and many from the same user never exceed 20",
+      "result": "PASS",
+      "detail": {
+        "5_users_x_40": "each 20",
+        "same_user_90_parallel": 20,
+        "user_with_12_old_40_parallel": 8,
+        "same_candidate_30x": 1
+      }
+    },
+    {
+      "test": "No Admin/RPC/table path can grant, reset or restore scans (incl. after clearing history)",
+      "result": "PASS",
+      "detail": {
+        "admin_action": "absent",
+        "old_attempt_rpc": "rejected",
+        "reset_update_delete": "rejected",
+        "after_history_cleared": "still 0"
+      }
+    },
+    {
+      "test": "Error in the middle of a scan rolls back everything",
+      "result": "PASS",
+      "detail": {
+        "rolled_back": true
+      }
+    },
+    {
+      "test": "Emergency pause/resume never grants or restores scans",
+      "result": "PASS",
+      "detail": {
+        "pause_resume_idempotent": true,
+        "no_quota_restored": true
+      }
+    },
+    {
+      "test": "Install refuses to run twice or over weekly v2/v3 structures",
+      "result": "PASS",
+      "detail": {
+        "reapply_refused": true,
+        "refused_over_weekly_v2_v3": true
+      }
+    },
+    {
+      "test": "31/10 data, 5 NULL rows and old scanned list unchanged; no fake history",
+      "result": "PASS",
+      "detail": {
+        "oct31_and_old_rows_hash_unchanged": true,
+        "null_rows": 5,
+        "no_fake_history": true
+      }
+    }
+  ]
+}

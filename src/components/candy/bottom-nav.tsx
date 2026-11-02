@@ -3,18 +3,19 @@ import {
   ChatNavIcon,
   GroupNavIcon,
   HomeNavIcon,
-  HotNavIcon,
+  SearchNavIcon,
   ProfileNavIcon,
 } from "@/components/candy/bottom-nav-icons";
 import "@/styles/nav-glass-v2.css";
+import "@/styles/mobile-search-glow.css";
 import { useLanguage } from "@/i18n/context";
 
 
 /**
  * Premium iOS-inspired floating dock nav.
- * Tabs: Trang chủ · 18 · Nhóm · Tin nhắn · Hồ sơ
+ * Tabs: Trang chủ · Tìm Bạn · Nhóm · Tin nhắn · Hồ sơ
  */
-export type AppTab = "fwb" | "home" | "eighteen" | "connect" | "chat" | "profile";
+export type AppTab = "fwb" | "home" | "search" | "connect" | "chat" | "profile";
 
 
 interface BottomNavProps {
@@ -42,9 +43,9 @@ export function BottomNav({ active, onChange, unreadCount = 0 }: BottomNavProps)
       render: (a) => <HomeNavIcon active={a} />,
     },
     {
-      id: "eighteen",
-      label: "Code",
-      render: (a) => <HotNavIcon active={a} />,
+      id: "search",
+      label: "Tìm Bạn",
+      render: (a) => <SearchNavIcon active={a} />,
     },
     {
       id: "connect",
@@ -102,7 +103,7 @@ export function BottomNav({ active, onChange, unreadCount = 0 }: BottomNavProps)
           <motion.button
             key={t.id}
             type="button"
-            className={`ios-dock__tab${isActive ? " is-active" : ""}`}
+            className={`ios-dock__tab${t.id === "search" ? " ios-dock__tab--search" : ""}${isActive ? " is-active" : ""}`}
             aria-label={t.ariaLabel ?? t.label}
             aria-current={isActive ? "page" : undefined}
             onClick={() => onChange(t.id)}

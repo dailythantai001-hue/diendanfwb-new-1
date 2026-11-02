@@ -1,0 +1,97 @@
+{
+  "engine": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by clang version 21.1.8, 64-bit",
+  "database": "disposable local cluster /tmp/v3-pg (socket only)",
+  "ran_at": "2026-11-01T16:31:10.092364+00:00",
+  "results": [
+    {
+      "test": "Install v3 despite 10 missing-history attempts and 5 NULL rows; conservative current-week quota",
+      "result": "PASS",
+      "detail": {
+        "reconciliation_rows": 3,
+        "user3_remaining": 12,
+        "user4_remaining": 0
+      }
+    },
+    {
+      "test": "Weekly mode: more than 30 scans in one day using Admin gifts",
+      "result": "PASS",
+      "detail": {
+        "scans_today": 45,
+        "old_daily_counter_unchanged": true
+      }
+    },
+    {
+      "test": "Concurrent scans: many users and many requests from the same user (weekly)",
+      "result": "PASS",
+      "detail": {
+        "users": 4,
+        "submitted": 160,
+        "counted": 80,
+        "same_candidate_calls": 24,
+        "same_candidate_counted": 1
+      }
+    },
+    {
+      "test": "Repeated gift/reset clicks are applied exactly once",
+      "result": "PASS",
+      "detail": {
+        "gift_calls": 24,
+        "granted": 3,
+        "reset_calls": 24,
+        "applied": 1,
+        "late_retry_ignored": true
+      }
+    },
+    {
+      "test": "Error in the middle of a scan rolls back everything (weekly)",
+      "result": "PASS",
+      "detail": {
+        "state_identical_after_error": true
+      }
+    },
+    {
+      "test": "Mid-week rollback to old mode cannot exceed 30 per day (concurrent requests)",
+      "result": "PASS",
+      "detail": {
+        "user11": "12 weekly + 18 daily = 30",
+        "user3": "8 old + 5 weekly + 17 daily = 30",
+        "user10": "45 weekly, 0 daily"
+      }
+    },
+    {
+      "test": "Error in the middle of a scan rolls back everything (old daily mode)",
+      "result": "PASS",
+      "detail": {
+        "legacy_counter_rolled_back": true
+      }
+    },
+    {
+      "test": "Switching back and forth many times never duplicates quota",
+      "result": "PASS",
+      "detail": {
+        "sequence": "W5 D3 W12 D10 W0",
+        "today_total": 30,
+        "week_base": 20,
+        "no_duplicated_quota": true
+      }
+    },
+    {
+      "test": "Mode switch racing with concurrent scans stays within limits",
+      "result": "PASS",
+      "detail": {
+        "weekly_today": 28,
+        "daily_after_switch": 2
+      }
+    },
+    {
+      "test": "31/10 data and the 5 NULL rows unchanged; scanned-account list kept",
+      "result": "PASS",
+      "detail": {
+        "oct31_hash_unchanged": true,
+        "null_rows": 5,
+        "no_fake_history": true,
+        "scanned_list_kept_after_clear": true
+      }
+    }
+  ]
+}

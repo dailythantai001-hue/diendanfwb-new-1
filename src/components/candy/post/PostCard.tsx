@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useRef } from "react";
-import { Pin } from "lucide-react";
+import { Crown, Pin } from "lucide-react";
+import { isVipProfile, useHasVipNameIcon } from "@/lib/vip-status";
 import type { PostRecord } from "@/lib/app-types";
 import { ReportRewardModal } from "@/components/candy/report-reward-modal";
 import { resolveUserName } from "@/lib/user-name";
@@ -56,8 +57,13 @@ function PostCardImpl(props: PostCardProps) {
   const ctx = usePostCardState(props);
   const {
     post, authorName, reportOpen, setReportOpen, categoryMeta,
-    pinnedActive, featuredActive, trackView,
+    pinnedActive, featuredActive, trackView, isAnonymous,
   } = ctx;
+  // UI-only: khung nổi bật khi tác giả có GIF sau tên (cùng store với
+  // <CloneVipNameMedia />); nhãn VIP chỉ khi hồ sơ thật sự VIP (isVipProfile).
+  const authorProfile: any = post.profiles || {};
+  const hasNameGif = useHasVipNameIcon(isAnonymous ? null : (authorProfile.id ?? post.user_id));
+  const showVipTag = hasNameGif && !isAnonymous && isVipProfile(authorProfile);
 
   const dataStates = [
     pinnedActive ? "pinned" : null,
@@ -139,8 +145,10 @@ function PostCardImpl(props: PostCardProps) {
           data-category={categoryMeta?.label.toLowerCase() || undefined}
           data-surface={feedSurface}
           data-led-kind={ledKind}
+          data-name-gif={hasNameGif ? "true" : undefined}
         >
           <span className="pc-card__led" aria-hidden />
+          {/* Nhãn VIP nằm trong hàng phụ của PostMeta (trong luồng), không đè nội dung. */}
 
           {/* UI-only: nhãn "Đã ghim" tinh tế ở đầu card — chỉ hiển thị khi bài đang ghim. */}
           {pinnedActive ? (

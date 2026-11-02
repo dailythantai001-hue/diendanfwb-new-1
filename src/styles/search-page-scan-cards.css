@@ -1,0 +1,19 @@
+/* "Tìm bạn mới" — pass card quét từng người (đang quét / thất bại / điểm phù hợp). Import sau search-filter-foot-fix.css. */
+
+/* ---------- Card đang quét ---------- */
+.pk-card--scan { align-items: flex-start; }
+.pk-scan-ic { flex: none; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: hsl(var(--pk)); background: hsl(var(--pk-soft)); border: 2px dashed hsl(var(--pk) / .5); }
+.pk-scan-ic svg { width: 26px; height: 26px; animation: pk-spin 1.4s linear infinite; }
+.pk-scan-text { font-size: 13.5px; font-weight: 700; color: hsl(var(--pk-ink) / .85); }
+.pk-progress { position: relative; width: 100%; height: 10px; border-radius: 999px; background: hsl(var(--pk-soft)); border: 1px solid hsl(var(--pk) / .25); overflow: hidden; }
+.pk-progress__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, hsl(var(--pk-2)), hsl(var(--pk))); transition: width .12s linear; }
+.pk-progress__pct { font-size: 12px; font-weight: 800; color: hsl(var(--pk)); }
+
+/* ---------- Card thất bại ---------- */
+.pk-card--fail { background: hsl(var(--pk-soft) / .6); border-style: dashed; }
+.pk-fail-x { flex: none; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: hsl(var(--pk-danger)); background: hsl(var(--pk-danger) / .08); border: 2px solid hsl(var(--pk-danger) / .4); }
+.pk-fail-x svg { width: 30px; height: 30px; stroke-width: 3; }
+.pk-fail-name { font-size: 15px; font-weight: 800; letter-spacing: .02em; color: hsl(var(--pk-danger)); }
+
+/* ---------- Huy hiệu % phù hợp ---------- */
+.pk-score { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; background: linear-gradient(135deg, hsl(var(--pk-2)), hsl(var(--pk))); color: hsl(0 0% 100%); font-size: 11.5px; font-weight: 800; box-shadow: 0 2px 8px hsl(var(--pk) / .35); }

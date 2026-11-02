@@ -1,4 +1,4 @@
-import { BadgeCheck, Pin, Star } from "lucide-react";
+import { BadgeCheck, Crown, Pin, Star } from "lucide-react";
 import { GenderIcon } from "@/components/candy/gender-icon";
 import UniversalBadge, { hasVipBadge } from "@/components/candy/universal-badge";
 import { isVipProfile, useHasVipNameIcon } from "@/lib/vip-status";
@@ -22,6 +22,8 @@ export function PostMeta() {
   // GIF sau tên lấy từ cùng store với <CloneVipNameMedia> (vip_media_assign).
   const hasNameGif = useHasVipNameIcon(isAnonymous ? null : (p.id ?? post.user_id));
   const hasVerifyIcon = !isAnonymous && (hasNameGif || hasVipBadge(p) || isVipProfile(p));
+  // Nhãn VIP: chỉ khi có GIF sau tên VÀ hồ sơ thật sự VIP (logic hiện có).
+  const showVipTag = hasNameGif && !isAnonymous && isVipProfile(p);
 
   return (
     <div className="pc-meta">
@@ -42,6 +44,11 @@ export function PostMeta() {
       </div>
 
       <div className="pc-meta-sub">
+        {showVipTag ? (
+          <span className="pc-vip-tag" title="Tài khoản VIP">
+            <Crown size={10} strokeWidth={2.4} aria-hidden /> VIP
+          </span>
+        ) : null}
         {isAnonymous ? null : hasVerifyIcon ? (
           <span className="pc-verify-chip pc-verify-chip--ok" title="Đã xác minh">
             <BadgeCheck size={12} strokeWidth={2.4} aria-hidden /> Đã xác minh

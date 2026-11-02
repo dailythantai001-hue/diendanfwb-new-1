@@ -203,3 +203,10 @@ export async function randomizeCloneVipMedia(
   notify();
   return targets.length;
 }
+
+/** DEV-only: nạp bảng gán mẫu cho trang xem thử giao diện (không ghi database). */
+export function __devSeedVipMediaAssign(raw: unknown) {
+  if (!import.meta.env.DEV) return;
+  assign = normalizeAssign(raw);
+  notify();
+}

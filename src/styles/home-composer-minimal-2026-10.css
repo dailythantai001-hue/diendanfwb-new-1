@@ -1,0 +1,92 @@
+/* ============================================================
+   TRANG CHỦ — thanh soạn bài tối giản (mobile-first)
+   Chỉ áp dụng cho .composer-trigger--minimal ở bảng tin trang chủ.
+   Thanh "Đăng lên bảng ghép đôi" (FWB) giữ nguyên giao diện cũ.
+   ============================================================ */
+
+.composer-trigger-wrap--minimal {
+  padding: 8px 14px 10px !important;
+}
+
+.composer-trigger.composer-trigger--minimal {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 46px !important;
+  padding: 6px 12px !important;
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 1px 2px hsl(222 20% 20% / 0.04),
+    0 4px 14px hsl(222 20% 20% / 0.05) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease !important;
+}
+
+.composer-trigger.composer-trigger--minimal:hover {
+  border-color: hsl(var(--border)) !important;
+  box-shadow:
+    0 1px 2px hsl(222 20% 20% / 0.05),
+    0 6px 18px hsl(222 20% 20% / 0.06) !important;
+  transform: none !important;
+}
+
+.composer-trigger.composer-trigger--minimal:active {
+  transform: scale(0.996) !important;
+}
+
+/* Ảnh đại diện: tròn, viền mờ, không khung màu */
+.composer-trigger--minimal .composer-trigger__avatar {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 999px !important;
+  object-fit: cover !important;
+  flex: 0 0 auto !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--muted)) !important;
+}
+
+/* Ô nhập: hoà vào thanh trắng, không còn "nút trong nút" */
+.composer-trigger--minimal .composer-trigger__field {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  height: auto !important;
+  min-height: 20px !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.composer-trigger--minimal .composer-trigger__text {
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.005em !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+@media (max-width: 420px) {
+  .composer-trigger-wrap--minimal {
+    padding: 6px 12px 8px !important;
+  }
+  .composer-trigger.composer-trigger--minimal {
+    min-height: 44px !important;
+  }
+  .composer-trigger--minimal .composer-trigger__avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composer-trigger.composer-trigger--minimal {
+    transition: none !important;
+  }
+  .composer-trigger.composer-trigger--minimal:active {
+    transform: none !important;
+  }
+}

@@ -9,7 +9,6 @@ import { AuthScreen } from "@/components/candy/auth-screen";
 import { PendingApprovalScreen } from "@/components/candy/pending-approval-screen";
 import { SuspendedOverlay } from "@/components/candy/suspended-overlay";
 import { BottomNav, type AppTab } from "@/components/candy/bottom-nav";
-import { FlashAlbumTab } from "@/components/candy/flash-album-tab";
 import { FeedbackZaloPage } from "@/components/candy/feedback-zalo";
 
 import { NotificationsPanel, useUnreadNotifications } from "@/components/candy/notifications-panel";
@@ -39,6 +38,7 @@ const FloatingPetEgg = lazyWithRetry(() => import("@/components/candy/floating-p
 const FloatingDock = lazyWithRetry(() => import("@/components/candy/floating-dock").then(m => ({ default: m.FloatingDock })));
 import { Button } from "@/components/ui/button";
 // PHẦN 4: Bỏ popup "Bạn đang Top" — TopRankWatcher import removed.
+import { SearchPage } from "@/components/candy/search-page";
 import { LeaderboardBadgesProvider } from "@/components/candy/leaderboard-badges-provider";
 import { chatDb } from "@/lib/chat-db";
 import { resolveUserName } from "@/lib/user-name";
@@ -51,7 +51,7 @@ function pathToTab(pathname: string): AppTab {
   // "/u/:id" = hồ sơ người khác dạng trang con → giữ nguyên tab phía dưới (Trang chủ).
   if (pathname.startsWith("/u/")) return "fwb";
   if (pathname.startsWith("/connect")) return "connect";
-  if (pathname.startsWith("/eighteen")) return "eighteen";
+  if (pathname.startsWith("/search")) return "search";
   if (pathname.startsWith("/chat")) return "chat";
   if (pathname.startsWith("/profile")) return "profile";
   if (pathname.startsWith("/pet")) return "fwb";
@@ -61,7 +61,7 @@ function pathToTab(pathname: string): AppTab {
 }
 function tabToPath(tab: AppTab): string {
   if (tab === "home") return "/find-fwb"; // Tìm FWB swipe
-  if (tab === "eighteen") return "/eighteen";
+  if (tab === "search") return "/search";
   if (tab === "connect") return "/connect";
   if (tab === "fwb") return "/"; // Trang chủ feed
   return `/${tab}`;
@@ -204,7 +204,7 @@ export function CandyAppInner() {
   // Bấm badge 🔴 LIVE ở bất kỳ đâu → chuyển sang tab Live Móc 🦋 (phòng sẽ tự cuộn tới).
   useEffect(() => {
     const handler = () => {
-      setTab("eighteen");
+      setTab("fwb");
       if (location.pathname !== "/") navigate("/");
     };
     window.addEventListener("app:open-live", handler as EventListener);
@@ -597,7 +597,7 @@ export function CandyAppInner() {
     if (tab === "profile") return profileId && profileId !== me?.id ? "Hồ sơ người dùng" : "Hồ sơ của tôi";
     if (tab === "fwb") return "Kênh Thế Giới";
     if (tab === "home") return "Tìm FWB";
-    if (tab === "eighteen") return "18";
+    if (tab === "search") return "Tìm kiếm";
     if (tab === "connect") return "Nhóm";
     return "Kênh Thế Giới";
   }, [chatTargetId, me?.id, profileId, tab, location.pathname]);
@@ -797,13 +797,14 @@ export function CandyAppInner() {
               />
             </Suspense>
           )}
-          {renderedTab === "eighteen" && <FlashAlbumTab />}
+          {renderedTab === "search" && <SearchPage onViewProfile={(id) => openUserProfile(id)} onOpenPost={goToPost} onOpenChat={(id) => setChatTargetId(id)} onBack={() => go("/")} />}
           {renderedTab === "connect" && (
             <Suspense fallback={<div className="page-fallback" aria-hidden />}>
               <ChatPage view="groups" targetUserId={null} onOpenProfile={openProfileSheet} />
             </Suspense>
           )}
         </div>
+        {renderedTab !== "search" && (
         <BottomNav
           active={renderedTab}
           unreadCount={unreadCount}
@@ -811,6 +812,7 @@ export function CandyAppInner() {
           isAdmin={isAdmin}
           onChange={(nextTab: AppTab) => setTab(nextTab)}
         />
+        )}
       </div>
       {overlayUserId ? (
         <ProfileOverlay

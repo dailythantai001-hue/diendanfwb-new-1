@@ -67,9 +67,29 @@
 @import "./styles/video-preview.css";
 @import "./styles/chat-copy-card.css";
 @import "./styles/admin-chat-workspace.css";
+@import "./styles/home-composer-minimal-2026-10.css";
+@import "./styles/post-card-mobile-compact-2026-10.css";
+@import "./styles/mobile-composer-box.css";
+@import "./styles/vip-zalo-guide.css";
+@import "./styles/post-card-name-gif.css";
 
 /* One compact attachment to the Home header, never a separate feed bar. */
 :root {
+  --search-nav-accent: hsl(252 65% 49%);
+  --search3d-rim-light: hsl(199 95% 66%);
+  --search3d-rim-dark: hsl(262 78% 48%);
+  --search3d-glass-light: hsl(195 100% 96%);
+  --search3d-glass-dark: hsl(220 90% 78%);
+  --search3d-handle-light: hsl(270 80% 66%);
+  --search3d-handle-dark: hsl(258 70% 34%);
+  --search3d-shine: hsl(0 0% 100% / 0.92);
+  --search3d-shadow: hsl(255 60% 30% / 0.22);
+  --search3d-halo: radial-gradient(circle, hsl(205 95% 62% / 0.45), hsl(268 85% 64% / 0.25) 55%, transparent 72%);
+  --search-nav-glow-surface: linear-gradient(120deg, hsl(205 92% 64% / 0.20), hsl(269 84% 70% / 0.18));
+  --search-nav-glow-shadow: -3px 0 10px 1px hsl(205 92% 60% / 0.24), 3px 0 11px 1px hsl(269 84% 65% / 0.22);
+  --post-approval-success: 146 72% 28%;
+  --post-approval-success-foreground: 0 0% 100%;
+  --post-approval-success-shadow: 0 4px 18px hsl(146 72% 12% / 0.18);
   --super-chain-light: oklch(0.97 0.01 250);
   --super-chain-mid: oklch(0.72 0.02 250);
   --super-chain-dark: oklch(0.38 0.02 250);
@@ -104,10 +124,33 @@
 }
 
 .dark {
+  --post-approval-success: 146 65% 30%;
   --feedback-zalo-surface: oklch(0.25 0.03 245);
   --feedback-zalo-hover: oklch(0.3 0.045 245);
   --feedback-zalo-border: oklch(0.42 0.065 245);
   --feedback-zalo-foreground: oklch(0.85 0.08 245);
+}
+
+.post-approval-notice {
+  position: fixed;
+  z-index: var(--z-toast, 2147483000);
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: hsl(var(--post-approval-success));
+  color: hsl(var(--post-approval-success-foreground));
+  box-shadow: var(--post-approval-success-shadow);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
 }
 
 .app-header .feedback-zalo-entry {
@@ -239,7 +282,7 @@
   top: calc(100% + 1px);
   right: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: var(--feedback-zalo-gap);
   width: max-content;

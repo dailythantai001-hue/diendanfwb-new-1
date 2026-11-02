@@ -1,0 +1,70 @@
+/* Fix: footer ĐẶT LẠI / LƯU CÀI ĐẶT của "Cài đặt tìm kiếm" bị thanh điều hướng (z-index 2000)
+   và dock nổi (9999) che. Sheet được portal ra body và đặt trên mọi lớp đó. Import cuối cùng. */
+body > .fs-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10050 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+body > .fs-backdrop > .fs-sheet {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  max-height: 88vh !important;
+  max-height: 88dvh !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+body > .fs-backdrop .fs-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+body > .fs-backdrop .fs-foot {
+  flex: none !important;
+  position: relative !important;
+  display: flex !important;
+  gap: 10px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+  background: hsl(0 0% 100%) !important;
+  border-top: 1px solid hsl(var(--pk) / .15) !important;
+  box-shadow: 0 -6px 16px hsl(var(--pk) / .08) !important;
+}
+body > .fs-backdrop .fs-foot > .fs-reset,
+body > .fs-backdrop .fs-foot > .fs-save {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: .03em !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+}
+body > .fs-backdrop .fs-foot > .fs-reset {
+  background: hsl(0 0% 100%) !important;
+  border: 1.5px solid hsl(var(--pk)) !important;
+  color: hsl(var(--pk)) !important;
+  box-shadow: none !important;
+}
+body > .fs-backdrop .fs-foot > .fs-save {
+  background: linear-gradient(135deg, hsl(var(--pk-2)), hsl(var(--pk))) !important;
+  border: 0 !important;
+  color: hsl(0 0% 100%) !important;
+  box-shadow: 0 6px 16px hsl(var(--pk) / .35) !important;
+}
+body > .fs-backdrop .fs-foot > .fs-save:disabled {
+  opacity: .45 !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}

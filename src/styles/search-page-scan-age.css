@@ -1,0 +1,28 @@
+/* Scan-age label on Nearby Scan result cards: a small vertical pill attached to
+   the card's right edge, fully OUTSIDE the card border, vertically centered.
+   It sits in the page's side gutter (~22px), so the card width and the list
+   layout stay unchanged and nothing is clipped. Presentation only. */
+.pk-card { position: relative; }
+.pk-age {
+  position: absolute;
+  left: 100%;
+  margin-left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  padding: 8px 3px;
+  max-height: calc(100% - 16px);
+  overflow: hidden;
+  border-radius: 8px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1;
+  white-space: nowrap;
+  color: hsl(var(--destructive-foreground));
+  box-shadow: 0 1px 4px hsl(var(--pk-ink) / .18);
+  pointer-events: none;
+}
+.pk-age--new { background: hsl(var(--destructive)); }
+.pk-age--d1 { background: hsl(var(--post-approval-success)); }
+.pk-age--old { background: hsl(205 80% 42%); }

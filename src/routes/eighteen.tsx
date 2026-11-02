@@ -1,13 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { importedPage } from "@/components/imported-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+// Trang Code cũ đã bị gỡ bỏ — chuyển hướng vĩnh viễn sang Tìm kiếm.
 export const Route = createFileRoute("/eighteen")({
-  head: () => ({ meta: [
-    { title: "Cộng đồng 18+ — Diễn Đàn FWB" },
-    { name: "description", content: "Cộng đồng 18+ trên Diễn Đàn FWB." },
-    { property: "og:title", content: "Cộng đồng 18+ — Diễn Đàn FWB" },
-    { property: "og:description", content: "Cộng đồng 18+ trên Diễn Đàn FWB." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary_large_image" },
-  ] }),
-  component: importedPage("Index"),
+  beforeLoad: () => {
+    throw redirect({ to: "/search", replace: true, statusCode: 301 });
+  },
 });

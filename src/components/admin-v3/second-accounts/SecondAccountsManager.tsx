@@ -8,6 +8,8 @@ import { CloneVipAvatarMedia } from "@/components/vip/clone-vip-avatar-media";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 // Tái sử dụng NGUYÊN màn hình CRM hiện có (cùng component với Cài đặt → CRM).
 const MembersManager = lazy(() => import("@/components/admin-v3/members/MembersManager").then((m) => ({ default: m.MembersManager })));
+const PendingPostsManager = lazy(() => import("@/components/admin-v3/PendingPostsManager").then((m) => ({ default: m.PendingPostsManager })));
+const SearchScanTab = lazy(() => import("./SearchScanTab").then((m) => ({ default: m.SearchScanTab })));
 const CrmManager = lazy(() => import("@/components/admin-v3/crm/CrmManager").then((m) => ({ default: m.CrmManager })));
 import { ProfileStickerPicker } from "@/components/candy/profile-sticker-picker";
 import { toast } from "sonner";
@@ -19,7 +21,7 @@ import { supabase } from "@/lib/supabase";
 import { fetchCloneUnreadTotalSb3 } from "@/lib/admin/second-account-sb3";
 import { useRealtime } from "@/lib/realtime-registry";
 import { MessagesTab, PostTab, type AccountLite } from "./InternalTools";
-import { Heart } from "lucide-react";
+import { Heart, Check } from "lucide-react";
 import { SeedingFollowTab } from "./SeedingFollowTab";
 import { PostReplyTab } from "./PostReplyTab";
 import { ChatScriptsTab } from "./ChatScriptsTab";
@@ -36,6 +38,7 @@ import {
 } from "@/lib/profile-cache";
 import { SeedGroupsModal } from "./SeedGroupsModal";
 import { fetchSeedGroupCounts, randomAssignSeedGroups } from "@/lib/seed-account-groups";
+import { usePendingPostCount } from "@/lib/admin/pending-review";
 
 type Row = {
   id: string;
@@ -144,10 +147,11 @@ function downloadFile(name: string, content: string, mime = "text/csv;charset=ut
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-type Tab = "list" | "messages" | "post" | "seeding" | "postreply" | "crm" | "members" | "scripts";
+type Tab = "list" | "messages" | "post" | "seeding" | "postreply" | "crm" | "members" | "scripts" | "search" | "review";
 
 // -------------------- Component --------------------
 export function SecondAccountsManager() {
+  const { data: pendingCount = 0 } = usePendingPostCount();
   const [tab, setTab] = useState<Tab>("list");
   useEffect(() => {
     const go = () => setTab("scripts");
@@ -500,6 +504,8 @@ export function SecondAccountsManager() {
         <TabBtn active={tab==="postreply"} onClick={()=>setTab("postreply")} icon={<MessageSquare size={14}/>} label="Trả Lời Bài Viết"/>
         <TabBtn active={tab==="crm"} onClick={()=>setTab("crm")} icon={<Users size={14}/>} label="CRM khách hàng"/>
         <TabBtn active={tab==="members"} onClick={()=>setTab("members")} icon={<Users size={14}/>} label="Quản lý thành viên"/>
+        <TabBtn active={tab==="search"} onClick={()=>setTab("search")} icon={<Search size={14}/>} label="Tìm Kiếm"/>
+        <TabBtn active={tab==="review"} onClick={()=>setTab("review")} icon={<Check size={14}/>} label="Duyệt bài" badge={pendingCount}/>
       </div>
 
       {tab === "messages" && <MessagesTab accounts={tabAccounts} />}
@@ -509,6 +515,8 @@ export function SecondAccountsManager() {
       {tab === "postreply" && <PostReplyTab accounts={tabAccounts} />}
       {tab === "crm" && <Suspense fallback={<div className="p-4 text-sm">Đang tải CRM…</div>}><CrmManager /></Suspense>}
       {tab === "members" && <Suspense fallback={<div className="p-4 text-sm">Đang tải thành viên…</div>}><MembersManager /></Suspense>}
+      {tab === "search" && <Suspense fallback={<div className="p-4 text-sm">Đang tải tìm kiếm…</div>}><SearchScanTab /></Suspense>}
+      {tab === "review" && <Suspense fallback={<div className="p-4 text-sm">Đang tải bài chờ duyệt…</div>}><PendingPostsManager realMembersOnly /></Suspense>}
 
 
 
@@ -731,7 +739,7 @@ function TabBtn({ active, onClick, icon, label, badge }: {
     >
       {icon} {label}
       {!!badge && badge > 0 && (
-        <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white">{badge}</span>
+        <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground">{badge}</span>
       )}
     </button>
   );

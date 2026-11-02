@@ -1,0 +1,205 @@
+/* ============================================================
+   Post card — compact mobile pass (2026-10)
+   Scope: <= 640px only, .pc-card (Feed / Profile / Post detail).
+   Touches spacing, sizing and alignment only: no markup, data or
+   behaviour changes. Desktop (> 640px) keeps the existing design.
+   ============================================================ */
+
+@media (max-width: 640px) {
+  /* Content no longer hangs off the 48px thread indent, so text and
+     media can use the card's full inner width. */
+  :root {
+    --pc-thread-indent: 0px;
+    --tr-card-radius: 14px;
+    --tr-media-radius: 12px;
+    --tr-gap: 10px;
+  }
+
+  /* 1 — Card shell: tighter padding, softer corner, closer neighbours */
+  .pc-card {
+    gap: 8px !important;
+    padding: 10px 12px 8px !important;
+    border-radius: var(--tr-card-radius) !important;
+  }
+
+  .pc-post-block + .pc-post-block,
+  .pc-card + .pc-card {
+    margin-top: 10px !important;
+  }
+
+  /* 2 — Author row: avatar, name, badge, verify chip, time on a tight rhythm */
+  .pc-header,
+  .pc-header-author {
+    gap: 8px;
+  }
+
+  .pc-avatar-ring,
+  .pc-avatar-wrap {
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+  }
+
+  .pc-header .avatar-glow {
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+  }
+
+  .pc-meta {
+    gap: 0;
+  }
+
+  .pc-meta-title-row {
+    gap: 4px;
+  }
+
+  .pc-meta-name {
+    font-size: 13.5px !important;
+  }
+
+  .pc-meta-sub {
+    font-size: 11px !important;
+    gap: 3px;
+  }
+
+  .pc-meta-time {
+    font-size: 11px;
+  }
+
+  .pc-verify-chip {
+    padding: 1px 6px !important;
+    border-radius: 6px !important;
+    font-size: 10px !important;
+    gap: 3px !important;
+  }
+
+  /* 3 — Copy sits right under the author row */
+  .pc-card .pc-body {
+    gap: 4px !important;
+  }
+
+  .pc-copy {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+
+  .rt-post-meta {
+    margin-bottom: 5px;
+    gap: 5px;
+  }
+
+  /* 4 — Photo / video fills the card width */
+  .pc-card .pc-media {
+    margin: 0 !important;
+  }
+
+  .pc-card .pc-media .tm-wrap,
+  .pc-card .pc-media .tm-wrap .tm-single,
+  .pc-card .pc-media .tm-single,
+  .pc-card .pc-media .tm-duo,
+  .pc-card .pc-media .tm-grid,
+  .pc-card .pc-media .pm-card--carousel,
+  .pc-card .pc-media .post-media-carousel,
+  .pc-card .pc-media .pm-card--video {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+  }
+
+  /* Single photo: full column width, natural height (no crop, no 380px cap).
+     Duo cells and carousel slides keep their own fill/cover behaviour. */
+  .pc-card .pc-media .tm-single > img {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: min(78vh, 560px) !important;
+  }
+
+  /* Carousel slides are a fixed frame: let the photo fill it instead of
+     leaving a strip of empty card under it. */
+  .pc-card .pc-media .pm-card--carousel .wm-frame.tc-slide > img {
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  /* 5 — Action row: one evenly spread row of smaller controls */
+  .pc-card .pc-footer .pc-reactions {
+    justify-content: space-between;
+    gap: 4px !important;
+    margin-top: 0 !important;
+    padding-top: 6px !important;
+  }
+
+  /* Let Facebook + Nhắn tin join the same flex line as Like and Nhóm. */
+  .pc-card .pc-reactions .pc-contact-actions {
+    display: contents;
+  }
+
+  .pc-card .pc-reactions .pc-action {
+    min-height: 32px;
+    padding: 4px 8px;
+    gap: 5px;
+    font-size: 12.5px;
+  }
+
+  .pc-card .pc-reactions .pc-action .pc-action-icon,
+  .pc-card .pc-reactions .pc-action svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .pc-card .pc-reactions .pc-like {
+    height: 32px;
+    min-height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+  }
+
+  .pc-card .pc-reactions .pc-group-action {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    border-radius: 6px;
+    padding: 0;
+  }
+
+  .pc-card .pc-reactions .pc-group-count {
+    right: 0;
+    top: -1px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: 7px;
+    font-size: 9px;
+  }
+
+  .pc-card .pc-reactions .pc-contact-trigger {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    border-radius: 6px;
+  }
+
+  .pc-card .pc-reactions .pc-contact-trigger svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pc-card .pc-reactions .pc-message-button {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    gap: 5px;
+    font-size: 12.5px;
+  }
+
+  .pc-card .pc-reactions .pc-message-button svg {
+    width: 15px;
+    height: 15px;
+  }
+}

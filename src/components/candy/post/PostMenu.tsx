@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { MoreHorizontal, Link2, Hash, Pencil, Trash2, Flag } from "lucide-react";
+import { MoreHorizontal, Link2, Hash, Trash2, Flag } from "lucide-react";
 import { Portal } from "@/components/candy/portal";
 import { usePostCard } from "./post-card-context";
 
@@ -12,7 +12,7 @@ import { usePostCard } from "./post-card-context";
 export function PostMenu() {
   const {
     menuOpen, openPostMenu, setMenuOpen, canDelete, copyUrl, copyUid,
-    startEdit, removePost, openReport, isPostOwner,
+    removePost, openReport, isPostOwner, canAdminDelete, adminRemovePost,
   } = usePostCard();
 
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -128,14 +128,13 @@ export function PostMenu() {
                 </button>
               ) : null}
               {canDelete ? (
-                <>
-                  <button className="pc-menu-item" onClick={item(startEdit)}>
-                    <Pencil size={16} /> Chỉnh sửa bài viết
-                  </button>
                   <button className="pc-menu-item pc-menu-item--danger" onClick={item(removePost)}>
                     <Trash2 size={16} /> Xóa bài viết
                   </button>
-                </>
+              ) : canAdminDelete ? (
+                  <button className="pc-menu-item pc-menu-item--danger" onClick={item(adminRemovePost)}>
+                    <Trash2 size={16} /> Xóa bài viết
+                  </button>
               ) : null}
             </div>
           </div>
