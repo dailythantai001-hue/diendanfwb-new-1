@@ -64,6 +64,7 @@ import { Route as ApiPublicEmergencyResetRouteImport } from './routes/api/public
 import { Route as ApiPublicHotMediaRouteImport } from './routes/api/public/hot-media'
 import { Route as ApiPublicPurgeChatCronRouteImport } from './routes/api/public/purge-chat-cron'
 import { Route as ApiPublicPurgeLogsCronRouteImport } from './routes/api/public/purge-logs-cron'
+import { Route as ApiPublicR2CorsRouteImport } from './routes/api/public/r2-cors'
 import { Route as ApiPublicR2DeleteRouteImport } from './routes/api/public/r2-delete'
 import { Route as ApiPublicR2SignRouteImport } from './routes/api/public/r2-sign'
 import { Route as ApiPublicR2TestRouteImport } from './routes/api/public/r2-test'
@@ -348,6 +349,11 @@ const ApiPublicPurgeLogsCronRoute = ApiPublicPurgeLogsCronRouteImport.update({
   path: '/api/public/purge-logs-cron',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicR2CorsRoute = ApiPublicR2CorsRouteImport.update({
+  id: '/api/public/r2-cors',
+  path: '/api/public/r2-cors',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicR2DeleteRoute = ApiPublicR2DeleteRouteImport.update({
   id: '/api/public/r2-delete',
   path: '/api/public/r2-delete',
@@ -431,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hot-media': typeof ApiPublicHotMediaRoute
   '/api/public/purge-chat-cron': typeof ApiPublicPurgeChatCronRoute
   '/api/public/purge-logs-cron': typeof ApiPublicPurgeLogsCronRoute
+  '/api/public/r2-cors': typeof ApiPublicR2CorsRoute
   '/api/public/r2-delete': typeof ApiPublicR2DeleteRoute
   '/api/public/r2-sign': typeof ApiPublicR2SignRoute
   '/api/public/r2-test': typeof ApiPublicR2TestRoute
@@ -493,6 +500,7 @@ export interface FileRoutesByTo {
   '/api/public/hot-media': typeof ApiPublicHotMediaRoute
   '/api/public/purge-chat-cron': typeof ApiPublicPurgeChatCronRoute
   '/api/public/purge-logs-cron': typeof ApiPublicPurgeLogsCronRoute
+  '/api/public/r2-cors': typeof ApiPublicR2CorsRoute
   '/api/public/r2-delete': typeof ApiPublicR2DeleteRoute
   '/api/public/r2-sign': typeof ApiPublicR2SignRoute
   '/api/public/r2-test': typeof ApiPublicR2TestRoute
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/api/public/hot-media': typeof ApiPublicHotMediaRoute
   '/api/public/purge-chat-cron': typeof ApiPublicPurgeChatCronRoute
   '/api/public/purge-logs-cron': typeof ApiPublicPurgeLogsCronRoute
+  '/api/public/r2-cors': typeof ApiPublicR2CorsRoute
   '/api/public/r2-delete': typeof ApiPublicR2DeleteRoute
   '/api/public/r2-sign': typeof ApiPublicR2SignRoute
   '/api/public/r2-test': typeof ApiPublicR2TestRoute
@@ -620,6 +629,7 @@ export interface FileRouteTypes {
     | '/api/public/hot-media'
     | '/api/public/purge-chat-cron'
     | '/api/public/purge-logs-cron'
+    | '/api/public/r2-cors'
     | '/api/public/r2-delete'
     | '/api/public/r2-sign'
     | '/api/public/r2-test'
@@ -682,6 +692,7 @@ export interface FileRouteTypes {
     | '/api/public/hot-media'
     | '/api/public/purge-chat-cron'
     | '/api/public/purge-logs-cron'
+    | '/api/public/r2-cors'
     | '/api/public/r2-delete'
     | '/api/public/r2-sign'
     | '/api/public/r2-test'
@@ -744,6 +755,7 @@ export interface FileRouteTypes {
     | '/api/public/hot-media'
     | '/api/public/purge-chat-cron'
     | '/api/public/purge-logs-cron'
+    | '/api/public/r2-cors'
     | '/api/public/r2-delete'
     | '/api/public/r2-sign'
     | '/api/public/r2-test'
@@ -805,6 +817,7 @@ export interface RootRouteChildren {
   ApiPublicHotMediaRoute: typeof ApiPublicHotMediaRoute
   ApiPublicPurgeChatCronRoute: typeof ApiPublicPurgeChatCronRoute
   ApiPublicPurgeLogsCronRoute: typeof ApiPublicPurgeLogsCronRoute
+  ApiPublicR2CorsRoute: typeof ApiPublicR2CorsRoute
   ApiPublicR2DeleteRoute: typeof ApiPublicR2DeleteRoute
   ApiPublicR2SignRoute: typeof ApiPublicR2SignRoute
   ApiPublicR2TestRoute: typeof ApiPublicR2TestRoute
@@ -1199,6 +1212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPurgeLogsCronRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/r2-cors': {
+      id: '/api/public/r2-cors'
+      path: '/api/public/r2-cors'
+      fullPath: '/api/public/r2-cors'
+      preLoaderRoute: typeof ApiPublicR2CorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/r2-delete': {
       id: '/api/public/r2-delete'
       path: '/api/public/r2-delete'
@@ -1312,6 +1332,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHotMediaRoute: ApiPublicHotMediaRoute,
   ApiPublicPurgeChatCronRoute: ApiPublicPurgeChatCronRoute,
   ApiPublicPurgeLogsCronRoute: ApiPublicPurgeLogsCronRoute,
+  ApiPublicR2CorsRoute: ApiPublicR2CorsRoute,
   ApiPublicR2DeleteRoute: ApiPublicR2DeleteRoute,
   ApiPublicR2SignRoute: ApiPublicR2SignRoute,
   ApiPublicR2TestRoute: ApiPublicR2TestRoute,

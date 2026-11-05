@@ -98,19 +98,35 @@ export const SB3_SESSION_MESSAGE =
 
 /**
  * Trigger Supabase 3 đọc UID từ phiên Supabase 3 → phải có phiên #3 đúng UID #1
- * trước khi insert. Gọi ensureChatSession() đúng 1 lần (không retry).
+ * trước khi insert. ensureChatSession() tự gộp lời gọi song song và chờ tối đa
+ * vài lần thử (700ms/lần) nếu cầu phiên đang được thiết lập / phiên #1 đang
+ * được khôi phục — chỉ báo lỗi khi chắc chắn không cấp được phiên #3.
  */
+async function waitForPrimarySession(auth1: any): Promise<boolean> {
+  for (let i = 0; i < 4; i++) {
+    const { data } = await auth1.getSession();
+    if (data?.session?.user?.id) return true;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return false;
+}
+
 export async function requireSb3Session(): Promise<void> {
   const { ensureChatSession } = await import("@/lib/chat-session");
   const { db3 } = await import("@/lib/db/router");
   const auth1 = (supabase as any).auth;
   const { data: s0 } = await auth1.getSession();
   if (!s0?.session?.user?.id) {
-    throw new PostSlotError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đăng bài.");
+    // Phiên #1 có thể đang được khôi phục từ storage → chờ ngắn trước khi kết luận hết hạn.
+    const restored = await waitForPrimarySession(auth1);
+    if (!restored) {
+      throw new PostSlotError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đăng bài.");
+    }
   }
   let ok = await ensureChatSession();
   if (!ok) {
-    // Token #1 có thể đã hết hạn → làm mới 1 lần rồi cấp lại phiên #3.
+    // Token #1 có thể đã hết hạn → làm mới rồi cấp lại phiên #3
+    // (ensureChatSession tự chờ/thử lại khi phiên đang được khôi phục).
     const { data: r, error } = await auth1.refreshSession();
     if (error || !r?.session) {
       throw new PostSlotError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đăng bài.");
@@ -124,7 +140,13 @@ export async function requireSb3Session(): Promise<void> {
   ]);
   const uid1 = s1?.session?.user?.id;
   const uid3 = s3?.session?.user?.id;
-  if (!uid1 || uid1 !== uid3) throw new PostSlotError(SB3_SESSION_MESSAGE);
+  if (!uid1 || uid1 !== uid3) {
+    // Phiên #3 vừa được cấp có thể chưa đọc được ngay → chờ ngắn rồi đọc lại một lần.
+    await new Promise((r) => setTimeout(r, 500));
+    const { data: s3b } = await db3().auth.getSession();
+    const uid3b = s3b?.session?.user?.id;
+    if (!uid1 || uid3b !== uid1) throw new PostSlotError(SB3_SESSION_MESSAGE);
+  }
 }
 
 /**

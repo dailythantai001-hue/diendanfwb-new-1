@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { R2_CACHE_CONTROL } from "@/lib/media/r2-cors-eval";
 
 /**
  * Ký (sign) upload Cloudflare R2 ở phía server.
@@ -18,6 +19,7 @@ const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "content-type, authorization",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+  "Access-Control-Max-Age": "86400",
 };
 
 const FOLDER_RE = /^[a-z0-9][a-z0-9._/-]{0,60}$/i;
@@ -153,16 +155,31 @@ export const Route = createFileRoute("/api/public/r2-sign")({
           credentials: { accessKeyId: accessKeyId!, secretAccessKey: secretAccessKey! },
         });
 
-        const uploadUrl = await getSignedUrl(
-          client,
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            ContentType: contentType,
-            CacheControl: "public, max-age=31536000, immutable",
-          }),
-          { expiresIn: 300 },
-        );
+        let uploadUrl: string;
+        try {
+          uploadUrl = await getSignedUrl(
+            client,
+            new PutObjectCommand({
+              Bucket: bucket,
+              Key: key,
+              ContentType: contentType,
+              CacheControl: R2_CACHE_CONTROL,
+            }),
+            { expiresIn: 300 },
+          );
+        } catch (e) {
+          // Lỗi ký URL (credentials sai / bucket không tồn tại...) — KHÔNG phải CORS.
+          const err = e as Error & { $metadata?: { httpStatusCode?: number } };
+          console.error("[r2-sign] ký URL thất bại:", err?.name, err?.message);
+          return Response.json(
+            {
+              error: "Không ký được URL tải lên R2 (lỗi credentials hoặc bucket).",
+              detail: `${err?.name || "Error"}: ${err?.message || e}`,
+              status: err?.$metadata?.httpStatusCode,
+            },
+            { status: 502, headers: cors },
+          );
+        }
 
         return Response.json(
           {

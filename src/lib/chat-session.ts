@@ -3,6 +3,8 @@
  *
  * - Không đổi UI, không đổi logic Chat: chỉ gắn session thật của #3 vào client `logs`
  *   để `auth.uid()` hoạt động trên #3 (chuẩn bị cho bước siết RLS sau này).
+ * - Nếu cầu nối đang được thiết lập / phiên #1 đang được khôi phục, các lời gọi
+ *   chờ hoàn tất (tối đa `attempts` lần, cách nhau 700ms) thay vì báo lỗi ngay.
  * - Mọi lỗi đều nuốt im lặng: phiên #1 và chat hiện tại (anon bridge) không bị ảnh hưởng.
  */
 import { db3, supabase } from "@/lib/db/router";
@@ -10,6 +12,8 @@ import { grantChatSessionFn } from "@/lib/chat-session.functions";
 
 let inflight: Promise<boolean> | null = null;
 let lastOkUserId: string | null = null;
+
+const RETRY_DELAY_MS = 700;
 
 async function currentSb3UserId(): Promise<string | null> {
   try {
@@ -58,29 +62,46 @@ async function run(uid: string, accessToken: string): Promise<boolean> {
   }
 }
 
-/** Đảm bảo client #3 có session của đúng user #1 đang đăng nhập. */
-export async function ensureChatSession(): Promise<boolean> {
-  if (typeof window === "undefined") return false;
-  if (inflight) return inflight;
-
-  inflight = (async () => {
-    try {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
-      if (!session?.user?.id || !session.access_token) return false;
-      if (lastOkUserId === session.user.id && (await currentSb3UserId()) === session.user.id) {
-        return true;
-      }
-      return await run(session.user.id, session.access_token);
-    } catch {
-      return false;
-    } finally {
-      // giải phóng ở tick sau để gộp các lời gọi song song
-      setTimeout(() => { inflight = null; }, 0);
+async function attemptOnce(): Promise<boolean> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session?.user?.id || !session.access_token) return false;
+    if (lastOkUserId === session.user.id && (await currentSb3UserId()) === session.user.id) {
+      return true;
     }
-  })();
+    return await run(session.user.id, session.access_token);
+  } catch {
+    return false;
+  }
+}
 
-  return inflight;
+/**
+ * Đảm bảo client #3 có session của đúng user #1 đang đăng nhập.
+ *
+ * Các lời gọi song song được gộp chung 1 lần cấp phiên. Một lần thử thất bại
+ * KHÔNG bị tái sử dụng: attempt kết thúc là được giải phóng ngay, lần gọi sau
+ * (kể cả retry sau khi phiên #1 refresh) luôn bắt đầu một lần cấp mới.
+ */
+export async function ensureChatSession(attempts = 3): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const max = Math.max(1, attempts);
+  for (let i = 0; i < max; i++) {
+    if (!inflight) {
+      inflight = attemptOnce().finally(() => {
+        // Giải phóng NGAY khi attempt kết thúc (kể cả thất bại) để caller retry
+        // nhận một attempt mới, không tái dùng kết quả false đã cũ.
+        inflight = null;
+      });
+    }
+    const pending = inflight;
+    const ok = await pending;
+    if (ok) return true;
+    if (i < max - 1) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+    }
+  }
+  return false;
 }
 
 /** Đăng xuất phiên #3 (gọi kèm khi logout #1). */
